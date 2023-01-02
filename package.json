@@ -1,0 +1,37 @@
+{
+  "name": "@onsetsoftware/automerge-store",
+  "version": "0.2.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@redux-devtools/app": "^2.2.0",
+    "@redux-devtools/extension": "^3.2.3",
+    "@redux-devtools/instrument": "^2.1.0",
+    "automerge-repo": "^0.0.40",
+    "automerge-repo-storage-localforage": "^0.0.11",
+    "typescript": "^4.6.4",
+    "vite": "^3.2.3",
+    "vite-plugin-dts": "^1.7.1",
+    "vite-plugin-top-level-await": "^1.2.1",
+    "vite-plugin-wasm": "^3.1.0"
+  },
+  "dependencies": {
+    "@automerge/automerge": "^2.0.1-alpha.2"
+  },
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/automerge-store.umd.js",
+  "module": "./dist/automerge-store.es.js",
+  "exports": {
+    ".": {
+      "import": "./dist/automerge-store.es.js",
+      "require": "./dist/automerge-store.umd.js"
+    }
+  },
+  "types": "./dist/types/index.d.ts"
+}

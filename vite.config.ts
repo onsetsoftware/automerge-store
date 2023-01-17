@@ -1,24 +1,37 @@
-import { defineConfig } from "vite"
-import wasm from "vite-plugin-wasm"
+/// <reference types="vitest" />
+
+import { defineConfig } from "vite";
+import wasm from "vite-plugin-wasm";
 import path from "path";
 import dts from "vite-plugin-dts";
-import topLevelAwait from "vite-plugin-top-level-await"
+import topLevelAwait from "vite-plugin-top-level-await";
+import { externalizeDeps } from "vite-plugin-externalize-deps";
 
 const resolvePath = (str: string) => path.resolve(__dirname, str);
 
 export default defineConfig({
   plugins: [
+    externalizeDeps(),
     topLevelAwait(),
-    wasm(),    
+    wasm(),
     dts({
-    entryRoot: resolvePath("src"),
-    outputDir: resolvePath("dist/types"),
-  }),],
-
+      entryRoot: resolvePath("src"),
+      outputDir: resolvePath("dist/types"),
+    }),
+  ],
   optimizeDeps: {
-    exclude: ["@automerge/automerge-wasm"]
+    exclude: ["@automerge/automerge-wasm"],
   },
-
+  resolve: {
+    alias: {
+      "@onsetsoftware/automerge-patcher": resolvePath(
+        "./node_modules/@onsetsoftware/automerge-patcher/src"
+      ),
+      "@automerge/automerge": resolvePath(
+        "./node_modules/@onsetsoftware/automerge-patcher/node_modules/@automerge/automerge"
+      ),
+    },
+  },
   build: {
     target: "esnext",
     lib: {
@@ -29,14 +42,14 @@ export default defineConfig({
     rollupOptions: {
       // make sure to externalize deps that shouldn't be bundled
       // into your library
-      external: ['@automerge/automerge'],
+      external: ["@automerge/automerge"],
       output: {
         // Provide global variables to use in the UMD build
         // for externalized deps
         globals: {
-          '@automerge/automerge': 'Automerge'
-        }
-      }
-    }
-  }
+          "@automerge/automerge": "Automerge",
+        },
+      },
+    },
+  },
 });

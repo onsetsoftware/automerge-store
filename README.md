@@ -1,6 +1,6 @@
 # Automerge Store
 
-A simple wrapper around [Automerge](https://automerge.org/) documents, with Redux Dev Tools integration amd (planned) undo/redo support. It works with both vanilla Automerge docs and `DocHandle`s from [Automerge Repo](https://github.com/pvh/automerge-repo).
+A simple wrapper around [Automerge](https://automerge.org/) documents, with Redux Dev Tools integration and (planned) undo/redo support. It works with both vanilla Automerge docs and `DocHandle`s from [Automerge Repo](https://github.com/pvh/automerge-repo).
 
 ## Installation
 

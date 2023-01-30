@@ -1,6 +1,6 @@
 # Automerge Store
 
-A simple wrapper around [Automerge](https://automerge.org/) documents, with Redux Dev Tools integration and (planned) undo/redo support. It works with both vanilla Automerge docs and `DocHandle`s from [Automerge Repo](https://github.com/pvh/automerge-repo).
+A simple wrapper around [Automerge](https://automerge.org/) documents, with Redux Dev Tools integration and undo/redo support. It works with both vanilla Automerge docs and `DocHandle`s from [Automerge Repo](https://github.com/pvh/automerge-repo).
 
 ## Installation
 
@@ -83,6 +83,29 @@ const unsubscribe = store.subscribe((doc) => {
 
 // unsubscribe
 unsubscribe();
+```
+
+## Updating the document
+
+```typescript
+store.change((doc) => {
+  doc.count += 1;
+});
+```
+
+## Undo/Redo
+Undo/Redo is supported by the `undo` and `redo` methods:
+
+```typescript
+store.undo();
+store.redo();
+```
+
+You can also check if there are any undo/redo actions available:
+
+```typescript
+store.canUndo();
+store.canRedo();
 ```
 
 ## Redux Dev Tools

@@ -1,6 +1,6 @@
 {
   "name": "@onsetsoftware/automerge-store",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -24,7 +24,7 @@
     "vitest": "^0.27.0"
   },
   "dependencies": {
-    "@automerge/automerge": "2.0.1-alpha.4",
+    "@automerge/automerge": "2.0.1-alpha.5",
     "@onsetsoftware/automerge-patcher": "^0.4.0",
     "dot-prop": "^7.2.0"
   },

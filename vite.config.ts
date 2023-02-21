@@ -22,16 +22,6 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ["@automerge/automerge-wasm"],
   },
-  resolve: {
-    alias: {
-      "@onsetsoftware/automerge-patcher": resolvePath(
-        "./node_modules/@onsetsoftware/automerge-patcher/src"
-      ),
-      "@automerge/automerge": resolvePath(
-        "./node_modules/@onsetsoftware/automerge-patcher/node_modules/@automerge/automerge"
-      ),
-    },
-  },
   build: {
     target: "esnext",
     lib: {

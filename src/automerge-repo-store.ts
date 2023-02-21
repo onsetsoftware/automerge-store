@@ -12,7 +12,7 @@ export class AutomergeRepoStore<T> extends AutomergeStore<T> {
     this.ready = false;
 
     const listener = async ({ handle }: { handle: DocHandle<T> }) => {
-      this.doc = await handle.syncValue();
+      this.doc = await handle.value();
       this.setReady();
     };
 
@@ -23,7 +23,7 @@ export class AutomergeRepoStore<T> extends AutomergeStore<T> {
     callback: ChangeFn<T>,
     options: ChangeOptions<T> = {}
   ): Doc<T> {
-    this.handle.change(callback, options);
+    this.handle.change(callback as any, options);
 
     return this.handle.doc;
   }

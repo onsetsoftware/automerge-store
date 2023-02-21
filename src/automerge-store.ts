@@ -2,8 +2,11 @@ import {
   change,
   type ChangeFn,
   type ChangeOptions,
+  decodeChange,
   type Doc,
+  Extend,
   getHeads,
+  getLastLocalChange,
   type Patch,
   PatchCallback,
 } from "@automerge/automerge";
@@ -103,7 +106,14 @@ export class AutomergeStore<T> {
           this.liveChangeId++;
         }
         this.changeCount++;
-        this.devTools.send({ type: getHeads(doc).join(",") }, doc);
+        this.devTools.send(
+          {
+            type:
+              decodeChange(getLastLocalChange(doc)!).message ||
+              getHeads(doc).join(","),
+          },
+          doc
+        );
       }
 
       if (this.changeCount === this.liveChangeId) {
@@ -163,7 +173,7 @@ export class AutomergeStore<T> {
 
     this.redoStack.push(next);
 
-    this.makeChange((doc: Doc<T>) => {
+    this.makeChange((doc: Extend<T>) => {
       for (const patch of next.undo) {
         applyPatch<T>(doc, patch);
       }

@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, test } from "vitest";
-import { AutomergeRepoStore, AutomergeStore } from "../src";
-import { from } from "@automerge/automerge";
+import { AutomergeRepoStore } from "../src";
 import { DocHandle, Repo } from "automerge-repo";
 
 type Structure = {
@@ -18,7 +17,7 @@ describe("Repo tests", () => {
 
     handle = repo.create<Structure>();
 
-    handle.change((doc) => {
+    await handle.change((doc) => {
       Object.assign(doc, { count: 0, string: "hello" });
     });
   });

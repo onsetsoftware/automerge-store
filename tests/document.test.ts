@@ -8,23 +8,20 @@ type Structure = {
 };
 
 describe("Document tests", () => {
-  beforeEach(() => {});
+  let store: AutomergeStore<Structure>;
 
-  test("A document can be passed to a store", () => {
-    const store = new AutomergeStore<Structure>(
+  beforeEach(() => {
+    store = new AutomergeStore<Structure>(
       "test",
       from({ count: 0, string: "hello" })
     );
+  });
 
+  test("A document can be passed to a store", () => {
     expect(store.doc).toEqual({ count: 0, string: "hello" });
   });
 
   test("a document can be changed and is updated in the store", () => {
-    const store = new AutomergeStore<Structure>(
-      "test",
-      from({ count: 0, string: "hello" })
-    );
-
     store.change((doc) => {
       doc.count = 1;
     });
@@ -34,11 +31,6 @@ describe("Document tests", () => {
 
   test("a patch callback can be passed to the change function", () =>
     new Promise((done: Function) => {
-      const store = new AutomergeStore<Structure>(
-        "test",
-        from({ count: 0, string: "hello" })
-      );
-
       store.change(
         (doc) => {
           doc.count = 1;
@@ -50,5 +42,12 @@ describe("Document tests", () => {
           },
         }
       );
+    }));
+
+  test("a document is marked as ready", () =>
+    new Promise((done: Function) => {
+      store.onReady(() => {
+        done();
+      });
     }));
 });

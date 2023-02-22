@@ -11,9 +11,12 @@ export class AutomergeRepoStore<T> extends AutomergeStore<T> {
 
     this.ready = false;
 
+    handle.value().then(() => {
+      this.setReady();
+    });
+
     const listener = async ({ handle }: { handle: DocHandle<T> }) => {
       this.doc = await handle.value();
-      this.setReady();
     };
 
     handle.on("change", listener);

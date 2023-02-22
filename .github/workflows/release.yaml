@@ -37,7 +37,7 @@ jobs:
         id: tests
         run: |
           npm install
-          npx vitest run
+          npx vitest run --no-threads
       - name: Build Release
         id: build_release
         run: |

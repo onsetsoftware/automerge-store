@@ -1,6 +1,6 @@
 import { AutomergeStore, AutomergeStoreOptions } from "./automerge-store";
 import { DocHandle } from "automerge-repo";
-import { ChangeFn, ChangeOptions, Doc } from "@automerge/automerge";
+import type { ChangeFn, ChangeOptions, Doc } from "@automerge/automerge";
 
 export class AutomergeRepoStore<T> extends AutomergeStore<T> {
   constructor(

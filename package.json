@@ -12,6 +12,7 @@
     "@redux-devtools/app": "^2.2.0",
     "@redux-devtools/extension": "^3.2.3",
     "@redux-devtools/instrument": "^2.1.0",
+    "automerge-repo-storage-memory": "^0.0.48",
     "jsdom": "^21.0.0",
     "typescript": "^4.6.4",
     "vite": "^3.2.3",

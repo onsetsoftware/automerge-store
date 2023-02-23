@@ -106,10 +106,12 @@ export class AutomergeStore<T> {
           this.liveChangeId++;
         }
         this.changeCount++;
+        const lastChange = getLastLocalChange(doc);
+
         this.devTools.send(
           {
             type:
-              decodeChange(getLastLocalChange(doc)!).message ||
+              (lastChange ? decodeChange(lastChange).message : null) ||
               getHeads(doc).join(","),
           },
           doc

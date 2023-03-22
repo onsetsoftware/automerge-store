@@ -56,17 +56,21 @@ describe("Repo tests", () => {
           patchCallback: (_) => {
             done();
           },
-        }
+        },
       );
     }));
+
+  test("a store is marked as ready", () =>
+    new Promise(async (done: Function) => {
+      const handle = repo.create<Structure>();
+      const found = repo.find(handle.documentId);
+      const store = new AutomergeRepoStore(found);
+      expect(store.ready).toBe(false);
+
+      store.onReady(async () => {
+        await expect(found.value()).resolves.toBeDefined();
+
+        done();
+      });
+    }));
 });
-test("a store is marked as ready", () =>
-  new Promise(async (done: Function) => {
-    const handle = repo.create<Structure>();
-
-    const store = new AutomergeRepoStore(handle);
-
-    store.onReady(() => {
-      done();
-    });
-  }));

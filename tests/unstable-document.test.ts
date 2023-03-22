@@ -18,7 +18,7 @@ const initialState: Structure = {
   object: { nested: "hello" },
 };
 
-describe("", () => {
+describe("Unstable document tests", () => {
   beforeEach(() => {
     doc = unstable.from(initialState);
   });

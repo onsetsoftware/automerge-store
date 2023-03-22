@@ -5,11 +5,11 @@ import type { ChangeFn, ChangeOptions, Doc } from "@automerge/automerge";
 export class AutomergeRepoStore<T> extends AutomergeStore<T> {
   constructor(
     private handle: DocHandle<T>,
-    options: AutomergeStoreOptions = {}
+    options: AutomergeStoreOptions = {},
   ) {
     super(handle.documentId, handle.doc, options);
 
-    this.ready = false;
+    this._ready = false;
 
     handle.value().then(() => {
       this.setReady();
@@ -24,7 +24,7 @@ export class AutomergeRepoStore<T> extends AutomergeStore<T> {
 
   protected makeChange(
     callback: ChangeFn<T>,
-    options: ChangeOptions<T> = {}
+    options: ChangeOptions<T> = {},
   ): Doc<T> {
     this.handle.change(callback as any, options);
 

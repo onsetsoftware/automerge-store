@@ -29,7 +29,7 @@ type WindowWithDevTools = Window & {
 };
 
 const reduxDevtoolsExtensionExists = (
-  arg: Window | WindowWithDevTools
+  arg: Window | WindowWithDevTools,
 ): arg is WindowWithDevTools => {
   return "__REDUX_DEVTOOLS_EXTENSION__" in arg;
 };
@@ -49,7 +49,7 @@ export class AutomergeStore<T> {
   protected changeCount = 0;
   protected liveChangeId = 0;
 
-  protected ready: boolean = false;
+  protected _ready: boolean = false;
 
   protected undoStack: UndoRedoPatches[] = [];
   protected redoStack: UndoRedoPatches[] = [];
@@ -57,7 +57,7 @@ export class AutomergeStore<T> {
   constructor(
     protected _id: string,
     protected _doc: Doc<T>,
-    options: AutomergeStoreOptions = {}
+    options: AutomergeStoreOptions = {},
   ) {
     this.options = { ...defaultOptions, ...options };
 
@@ -81,7 +81,11 @@ export class AutomergeStore<T> {
       });
     }
 
-    this.ready = true;
+    this._ready = true;
+  }
+
+  get ready() {
+    return this._ready;
   }
 
   get id() {
@@ -111,10 +115,10 @@ export class AutomergeStore<T> {
         this.devTools.send(
           {
             type:
-              (lastChange ? decodeChange(lastChange).message : null) ||
+              (lastChange ? decodeChange(lastChange).message : "@LOAD") ||
               getHeads(doc).join(","),
           },
-          doc
+          doc,
         );
       }
 
@@ -151,7 +155,7 @@ export class AutomergeStore<T> {
 
   protected makeChange(
     callback: ChangeFn<T>,
-    options: ChangeOptions<T> = {}
+    options: ChangeOptions<T> = {},
   ): Doc<T> {
     this.doc = change<T>(this._doc, options, callback);
 
@@ -199,7 +203,7 @@ export class AutomergeStore<T> {
   }
 
   protected setReady() {
-    this.ready = true;
+    this._ready = true;
 
     this.onReadySubscribers.forEach((subscriber) => {
       subscriber();
@@ -209,7 +213,7 @@ export class AutomergeStore<T> {
   }
 
   onReady(callback: () => void) {
-    if (this.ready) {
+    if (this._ready) {
       callback();
     } else {
       this.onReadySubscribers.add(callback);

@@ -13,6 +13,7 @@ import {
 import type { ConnectResponse } from "./dev-tools";
 
 import { patch as applyPatch, unpatch } from "@onsetsoftware/automerge-patcher";
+import { get_store_value } from "./utilities/get";
 
 export type AutomergeStoreOptions = {
   withDevTools?: boolean;
@@ -45,7 +46,7 @@ export class AutomergeStore<T> {
   private options: AutomergeStoreOptions;
 
   // dev tools parameters
-  private readonly devTools: ConnectResponse | undefined;
+  private devTools: ConnectResponse | undefined;
   protected changeCount = 0;
   protected liveChangeId = 0;
 
@@ -54,13 +55,31 @@ export class AutomergeStore<T> {
   protected undoStack: UndoRedoPatches[] = [];
   protected redoStack: UndoRedoPatches[] = [];
 
+  protected _doc!: Doc<T>;
+
   constructor(
     protected _id: string,
-    protected _doc: Doc<T>,
+    _doc: Doc<T> | Promise<Doc<T>>,
     options: AutomergeStoreOptions = {},
   ) {
     this.options = { ...defaultOptions, ...options };
 
+    if (_doc instanceof Promise) {
+      _doc.then((doc) => {
+        this._doc = doc;
+        this.setReady();
+      });
+    } else {
+      this._doc = _doc;
+      this.setReady();
+    }
+
+    this.ready().then(() => {
+      this.setupDevTools();
+    });
+  }
+
+  private setupDevTools() {
     if (this.options.withDevTools && reduxDevtoolsExtensionExists(window)) {
       this.devTools = window.__REDUX_DEVTOOLS_EXTENSION__.connect({
         name: this._id,
@@ -80,12 +99,16 @@ export class AutomergeStore<T> {
         }
       });
     }
-
-    this._ready = true;
   }
 
-  get ready() {
-    return this._ready;
+  ready() {
+    return new Promise<void>((resolve) => {
+      if (this._ready) {
+        resolve();
+      } else {
+        this.onReadySubscribers.add(resolve);
+      }
+    });
   }
 
   get id() {
@@ -93,7 +116,7 @@ export class AutomergeStore<T> {
   }
 
   get doc() {
-    return this._doc;
+    return get_store_value(this);
   }
 
   protected set doc(doc: Doc<T>) {
@@ -131,10 +154,7 @@ export class AutomergeStore<T> {
   protected patchCallback(options: ChangeOptions<T>): PatchCallback<T> {
     return (patches, old, updated) => {
       this.undoStack.push({
-        // TODO remove both any
-        undo: [...patches]
-          .reverse()
-          .map((patch) => unpatch(old as any, patch)) as any,
+        undo: [...patches].reverse().map((patch) => unpatch(old as any, patch)),
         redo: patches,
       });
 
@@ -181,7 +201,7 @@ export class AutomergeStore<T> {
 
     this.makeChange((doc: Extend<T>) => {
       for (const patch of next.undo) {
-        applyPatch<T>(doc, patch);
+        applyPatch(doc as any, patch);
       }
     });
   }
@@ -197,7 +217,7 @@ export class AutomergeStore<T> {
 
     this.makeChange((doc) => {
       for (const patch of next.redo) {
-        applyPatch<T>(doc, patch);
+        applyPatch(doc as any, patch);
       }
     });
   }

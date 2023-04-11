@@ -7,13 +7,9 @@ export class AutomergeRepoStore<T> extends AutomergeStore<T> {
     private handle: DocHandle<T>,
     options: AutomergeStoreOptions = {},
   ) {
-    super(handle.documentId, handle.doc, options);
+    super(handle.documentId, handle.value(), options);
 
     this._ready = false;
-
-    handle.value().then(() => {
-      this.setReady();
-    });
 
     const listener = async ({ handle }: { handle: DocHandle<T> }) => {
       this.doc = await handle.value();
@@ -26,8 +22,8 @@ export class AutomergeRepoStore<T> extends AutomergeStore<T> {
     callback: ChangeFn<T>,
     options: ChangeOptions<T> = {},
   ): Doc<T> {
-    this.handle.change(callback as any, options);
+    this.handle.change(callback, options);
 
-    return this.handle.doc;
+    return this._doc;
   }
 }

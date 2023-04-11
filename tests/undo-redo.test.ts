@@ -6,13 +6,13 @@ import { Repo } from "automerge-repo";
 export function reorderArray(
   items: any[],
   indexes: number[],
-  insertIndex: number
+  insertIndex: number,
 ) {
   const params = [insertIndex, 0]
     .concat(
       indexes.sort(function (a, b) {
         return a - b;
-      })
+      }),
     )
     .map(function (i, p) {
       return p > 1 ? items.splice(i - p + 2, 1).pop() : i;
@@ -36,7 +36,7 @@ describe("automerge document manager tests", () => {
       change<DocStructure>(doc, (d) => {
         d.hello = new Text();
         d.hello.insertAt(0, ..."hello".split(""));
-      })
+      }),
     );
 
     manager.change((doc) => {
@@ -64,7 +64,7 @@ describe("automerge document manager tests", () => {
       change<DocStructure>(doc, (d) => {
         d.hello = new Text();
         d.hello.insertAt(0, ..."hello".split(""));
-      })
+      }),
     );
 
     manager.change((doc) => {
@@ -92,8 +92,8 @@ describe("automerge document manager tests", () => {
     const manager = new AutomergeStore<DocStructure>(
       "docId",
       change<DocStructure>(doc, (d) => {
-        d.hello = ["hello"];
-      })
+        Object.assign(d, { hello: ["hello"] });
+      }),
     );
 
     manager.change((doc) => {
@@ -121,8 +121,8 @@ describe("automerge document manager tests", () => {
     const manager = new AutomergeStore<DocStructure>(
       "docId",
       change<DocStructure>(doc, (d) => {
-        d.hello = ["hello", "world"];
-      })
+        Object.assign(d, { hello: ["hello", "world"] });
+      }),
     );
 
     manager.change((doc) => {
@@ -150,8 +150,8 @@ describe("automerge document manager tests", () => {
     const manager = new AutomergeStore<DocStructure>(
       "docId",
       change<DocStructure>(doc, (d) => {
-        d.hello = ["hello", "there", "world"];
-      })
+        Object.assign(d, { hello: ["hello", "there", "world"] });
+      }),
     );
 
     manager.change((doc) => {
@@ -185,7 +185,7 @@ describe("automerge document manager tests", () => {
         d.hello = {
           world: "hello",
         };
-      })
+      }),
     );
 
     manager.change((doc) => {
@@ -220,7 +220,7 @@ describe("automerge document manager tests", () => {
           world: "hello",
           data: "data",
         };
-      })
+      }),
     );
 
     manager.change((doc) => {
@@ -259,11 +259,13 @@ describe("automerge document manager tests", () => {
     const manager = new AutomergeStore<DocStructure>(
       "docId",
       change<DocStructure>(doc, (d) => {
-        d.people = {
-          ids: [],
-          entities: {},
-        };
-      })
+        Object.assign(d, {
+          people: {
+            ids: [],
+            entities: {},
+          },
+        });
+      }),
     );
 
     manager.change((doc) => {
@@ -305,7 +307,7 @@ describe("automerge document manager tests", () => {
     });
   });
 
-  test("it works with a doc handle too", () => {
+  test("it works with a doc handle too", async () => {
     type DocStructure = {
       hello: string[];
     };
@@ -320,8 +322,10 @@ describe("automerge document manager tests", () => {
       Object.assign(doc, { hello: ["hello"] });
     });
 
-    return new Promise((done: Function) => {
+    return new Promise(async (done: Function) => {
       const manager = new AutomergeRepoStore(handle);
+
+      await manager.ready();
 
       manager.change((doc) => {
         doc.hello.push("world");
@@ -329,23 +333,23 @@ describe("automerge document manager tests", () => {
 
       let calls = 0;
 
-      manager.subscribe((doc) => {
-        const expectations = [
-          () => {
-            expect({ ...doc }.hello).toEqual(["hello", "world"]);
-            manager.undo();
-          },
-          () => {
-            expect({ ...doc }.hello).toEqual(["hello"]);
-            manager.redo();
-          },
-          () => {
-            expect({ ...doc }.hello).toEqual(["hello", "world"]);
-            done();
-          },
-        ];
+      const expectations = [
+        (doc: DocStructure) => {
+          expect({ ...doc }.hello).toEqual(["hello", "world"]);
+          manager.undo();
+        },
+        (doc: DocStructure) => {
+          expect({ ...doc }.hello).toEqual(["hello"]);
+          manager.redo();
+        },
+        (doc: DocStructure) => {
+          expect({ ...doc }.hello).toEqual(["hello", "world"]);
+          done();
+        },
+      ];
 
-        expectations[calls]();
+      manager.subscribe((doc) => {
+        expectations[calls](doc);
         calls++;
       }, false);
     });

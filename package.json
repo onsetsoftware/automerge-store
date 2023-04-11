@@ -6,7 +6,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "test": "vitest"
+    "test": "vitest",
+    "vitest.commandLine": "vitest run"
   },
   "devDependencies": {
     "@redux-devtools/app": "^2.2.0",
@@ -14,7 +15,7 @@
     "@redux-devtools/instrument": "^2.1.0",
     "automerge-repo-storage-memory": "^0.0.48",
     "jsdom": "^21.0.0",
-    "typescript": "^4.6.4",
+    "typescript": "^5.0.0",
     "vite": "^4.1.0",
     "vite-plugin-dts": "^2.1.0",
     "vite-plugin-externalize-deps": "^0.5.0",
@@ -23,11 +24,11 @@
     "vitest": "^0.29.0"
   },
   "peerDependencies": {
-    "automerge-repo": "^0.0.49"
+    "automerge-repo": "^0.0.50"
   },
   "dependencies": {
     "@automerge/automerge": "^2.0.2",
-    "@onsetsoftware/automerge-patcher": "^0.6.0",
+    "@onsetsoftware/automerge-patcher": "^0.7.0",
     "dot-prop": "^7.2.0"
   },
   "files": [

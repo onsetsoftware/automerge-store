@@ -1,6 +1,6 @@
 # Automerge Store
 
-A simple wrapper around [Automerge](https://automerge.org/) documents, with Redux Dev Tools integration and undo/redo support. It works with both vanilla Automerge docs and `DocHandle`s from [Automerge Repo](https://github.com/pvh/automerge-repo).
+A simple wrapper around [Automerge](https://automerge.org/) documents, with Redux Dev Tools integration and undo/redo support. It works with both vanilla Automerge docs and `DocHandle`s from [Automerge Repo](https://github.com/automerge/automerge-repo).
 
 ## Installation
 
@@ -65,9 +65,6 @@ localforage.getItem("rootDocId").then(async (docId) => {
     handle = repo.find(docId as DocumentId);
   }
 
-  // wait for the handle to load
-  await handle.value();
-
   const store = new AutomergeRepoStore(handle);
 });
 ```
@@ -75,6 +72,7 @@ localforage.getItem("rootDocId").then(async (docId) => {
 ## Subscribing
 
 ```typescript
+await store.ready();
 
 const unsubscribe = store.subscribe((doc) => {
   // update your UI/update another state store
@@ -88,6 +86,9 @@ unsubscribe();
 ## Updating the document
 
 ```typescript
+// wait for the store to be ready before making changes
+await store.ready();
+
 store.change((doc) => {
   doc.count += 1;
 });

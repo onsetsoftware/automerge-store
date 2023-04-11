@@ -15,25 +15,33 @@ describe("Dev tools integration", () => {
     vi.clearAllMocks();
   });
 
-  test("store connects to dev tools", () => {
-    new AutomergeStore("test", { count: 0 }, { withDevTools: true });
+  test("store connects to dev tools", async () => {
+    const store = new AutomergeStore(
+      "test",
+      { count: 0 },
+      { withDevTools: true },
+    );
+
+    await store.ready();
 
     expect(devToolsMock.connect).toBeCalledWith({ name: "test" });
   });
 
-  test("repo store connects to dev tools", () => {
+  test("repo store connects to dev tools", async () => {
     const repo = new Repo({
       network: [],
     });
 
     const handle = repo.create();
 
-    new AutomergeRepoStore(handle, { withDevTools: true });
+    const store = new AutomergeRepoStore(handle, { withDevTools: true });
+
+    await store.ready();
 
     expect(devToolsMock.connect).toBeCalledWith({ name: handle.documentId });
   });
 
-  test("repo store connects to dev tools with a found handle", () => {
+  test("repo store connects to dev tools with a found handle", async () => {
     const memoryStorage = new MemoryStorageAdapter();
     const repo = new Repo({
       storage: memoryStorage,
@@ -51,9 +59,11 @@ describe("Dev tools integration", () => {
       network: [],
     });
 
-    new AutomergeRepoStore(repo2.find(handle.documentId), {
+    const store = new AutomergeRepoStore(repo2.find(handle.documentId), {
       withDevTools: true,
     });
+
+    await store.ready();
 
     expect(devToolsMock.connect).toBeCalledWith({ name: handle.documentId });
   });

@@ -10,6 +10,7 @@ type Structure = {
 let repo: Repo;
 let handle: DocHandle<Structure>;
 let store: AutomergeRepoStore<Structure>;
+
 describe("Repo tests", () => {
   beforeEach(async () => {
     repo = new Repo({
@@ -23,6 +24,7 @@ describe("Repo tests", () => {
     });
 
     store = new AutomergeRepoStore(handle);
+    await store.ready();
   });
 
   test("A document handle can be passed to a store", () =>
@@ -30,13 +32,23 @@ describe("Repo tests", () => {
       store.subscribe((doc) => {
         expect({ ...doc }).toEqual({ count: 0, string: "hello" });
         done();
-      }, false);
+      });
     }));
 
   test("a document can be changed and is updated in the store", () =>
     new Promise((done: Function) => {
+      let firstCall = true;
       store.subscribe((doc) => {
-        expect({ ...doc }).toEqual({ count: 1, string: "hello" });
+        if (firstCall) {
+          expect({ ...doc }).toEqual({ count: 1, string: "hello" });
+          firstCall = false;
+
+          store.change((doc) => {
+            doc.count = 2;
+          });
+          return;
+        }
+        expect({ ...doc }).toEqual({ count: 2, string: "hello" });
         done();
       }, false);
 
@@ -65,11 +77,21 @@ describe("Repo tests", () => {
       const handle = repo.create<Structure>();
       const found = repo.find(handle.documentId);
       const store = new AutomergeRepoStore(found);
-      expect(store.ready).toBe(false);
 
       store.onReady(async () => {
-        await expect(found.value()).resolves.toBeDefined();
+        expect(await found.value()).toBeDefined();
 
+        done();
+      });
+    }));
+
+  test("store ready promise resolves", () =>
+    new Promise((done: Function) => {
+      const handle = repo.create<Structure>();
+      const found = repo.find(handle.documentId);
+      const store = new AutomergeRepoStore(found);
+
+      store.ready().then(() => {
         done();
       });
     }));

@@ -13,7 +13,7 @@ describe("Document tests", () => {
   beforeEach(() => {
     store = new AutomergeStore<Structure>(
       "test",
-      from({ count: 0, string: "hello" })
+      from({ count: 0, string: "hello" }),
     );
   });
 
@@ -40,13 +40,20 @@ describe("Document tests", () => {
           patchCallback: (_) => {
             done();
           },
-        }
+        },
       );
     }));
 
   test("a document is marked as ready", () =>
     new Promise((done: Function) => {
       store.onReady(() => {
+        done();
+      });
+    }));
+
+  test("store ready promise resolves", () =>
+    new Promise((done: Function) => {
+      store.ready().then(() => {
         done();
       });
     }));

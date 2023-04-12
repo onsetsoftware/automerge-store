@@ -1,6 +1,6 @@
 {
   "name": "@onsetsoftware/automerge-store",
-  "version": "0.5.0",
+  "version": "0.4.9",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -24,7 +24,7 @@
     "vitest": "^0.29.0"
   },
   "peerDependencies": {
-    "automerge-repo": "https://gitpkg.now.sh/onsetsoftware/automerge-repo/packages/automerge-repo?add-extension-to-imports"
+    "automerge-repo": "https://gitpkg.now.sh/onsetsoftware/automerge-repo/packages/automerge-repo?0.0.51-dummy-release"
   },
   "dependencies": {
     "@automerge/automerge": "^2.0.2",

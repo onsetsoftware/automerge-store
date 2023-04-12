@@ -65,8 +65,9 @@ export class AutomergeStore<T> {
     this.options = { ...defaultOptions, ...options };
 
     if (_doc instanceof Promise) {
-      _doc.then((doc) => {
+      _doc.then(async (doc) => {
         this._doc = doc;
+        await new Promise((resolve) => setTimeout(resolve));
         this.setReady();
       });
     } else {

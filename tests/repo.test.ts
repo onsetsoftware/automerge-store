@@ -95,4 +95,17 @@ describe("Repo tests", () => {
         done();
       });
     }));
+
+  test("handle value resolves before store ready", async () => {
+    const found = repo.find(handle.documentId);
+    const store = new AutomergeRepoStore(found);
+
+    const first = await Promise.race([
+      new Promise<"handle">((done) => found.value().then(() => done("handle"))),
+      new Promise<"store">((done) => store.ready().then(() => done("store"))),
+    ]);
+    expect(first).toEqual("handle");
+
+    expect(store.doc).toEqual({ count: 0, string: "hello" });
+  });
 });

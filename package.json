@@ -1,6 +1,6 @@
 {
   "name": "@onsetsoftware/automerge-store",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -39,7 +39,8 @@
   "exports": {
     ".": {
       "import": "./dist/automerge-store.es.js",
-      "require": "./dist/automerge-store.umd.js"
+      "require": "./dist/automerge-store.umd.js",
+      "types": "./dist/types/index.d.ts"
     }
   },
   "types": "./dist/types/index.d.ts"

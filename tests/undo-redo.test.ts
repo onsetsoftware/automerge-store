@@ -327,10 +327,6 @@ describe("automerge document manager tests", () => {
 
       await manager.ready();
 
-      manager.change((doc) => {
-        doc.hello.push("world");
-      });
-
       let calls = 0;
 
       const expectations = [
@@ -352,6 +348,10 @@ describe("automerge document manager tests", () => {
         expectations[calls](doc);
         calls++;
       }, false);
+
+      manager.change((doc) => {
+        doc.hello.push("world");
+      });
     });
   });
 });

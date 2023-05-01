@@ -1,8 +1,8 @@
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { devToolsMock } from "./helpers/dev-tools.mock";
-import { AutomergeRepoStore, AutomergeStore } from "../src";
 import { Repo } from "automerge-repo";
 import { MemoryStorageAdapter } from "automerge-repo-storage-memory";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { AutomergeRepoStore, AutomergeStore } from "../src";
+import { devToolsMock } from "./helpers/dev-tools.mock";
 
 describe("Dev tools integration", () => {
   beforeEach(() => {
@@ -54,6 +54,8 @@ describe("Dev tools integration", () => {
       doc.foo = "bar";
     });
 
+    await new Promise((resolve) => setTimeout(resolve));
+
     const repo2 = new Repo({
       storage: memoryStorage,
       network: [],
@@ -65,7 +67,9 @@ describe("Dev tools integration", () => {
 
     await store.ready();
 
-    expect(devToolsMock.connect).toBeCalledWith({ name: handle.documentId });
+    expect(devToolsMock.connect).toBeCalledWith({
+      name: handle.documentId,
+    });
   });
 
   test("store does not connect to dev tools when not required", () => {

@@ -153,14 +153,16 @@ export class AutomergeStore<T> {
   }
 
   protected patchCallback(options: ChangeOptions<T>): PatchCallback<T> {
-    return (patches, old, updated) => {
+    return (patches, info) => {
       this.undoStack.push({
-        undo: [...patches].reverse().map((patch) => unpatch(old as any, patch)),
+        undo: [...patches]
+          .reverse()
+          .map((patch) => unpatch(info.before as any, patch)),
         redo: patches,
       });
 
       if (options.patchCallback) {
-        options.patchCallback(patches, old, updated);
+        options.patchCallback(patches, info);
       }
     };
   }

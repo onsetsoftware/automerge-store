@@ -106,6 +106,29 @@ describe("Repo tests", () => {
     ]);
     expect(first).toEqual("handle");
 
-    expect(store.doc).toEqual({ count: 0, string: "hello" });
+    return new Promise<void>((done) => {
+      store.ready().then(() => {
+        const sub = store.subscribe((doc) => {
+          expect(doc).toEqual({ count: 0, string: "hello" });
+          sub();
+          done();
+        });
+      });
+    });
+  });
+
+  test("delayed initial subscribe yeilds the correct value", async () => {
+    await handle.change((doc) => {
+      Object.assign(doc, { count: 1, string: "hello world" });
+    });
+
+    await new Promise((done) => setTimeout(done, 100));
+
+    return new Promise<void>((done) => {
+      store.subscribe((doc) => {
+        expect(doc).toEqual({ count: 1, string: "hello world" });
+        done();
+      });
+    });
   });
 });

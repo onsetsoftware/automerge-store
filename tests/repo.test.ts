@@ -27,13 +27,16 @@ describe("Repo tests", () => {
     await store.ready();
   });
 
-  test("A document handle can be passed to a store", () =>
-    new Promise((done: Function) => {
+  test.only("A document handle can be passed to a store", () => {
+    expect(store.doc).toEqual({ count: 0, string: "hello" });
+
+    return new Promise((done: Function) => {
       store.subscribe((doc) => {
         expect({ ...doc }).toEqual({ count: 0, string: "hello" });
         done();
       });
-    }));
+    });
+  });
 
   test("a document can be changed and is updated in the store", () =>
     new Promise((done: Function) => {

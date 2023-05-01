@@ -32,6 +32,7 @@ export class AutomergeRepoStore<T> extends AutomergeStore<T> {
         this.handle.once(
           "patch",
           ({ patches, handle, ...patchInfo }: DocHandlePatchPayload<T>) => {
+            this._doc = patchInfo.after;
             patchCallback(patches, patchInfo as PatchInfo<T>);
           },
         );
@@ -50,10 +51,7 @@ export class AutomergeRepoStore<T> extends AutomergeStore<T> {
     fireImmediately: boolean = true,
   ) {
     if (fireImmediately) {
-      this.handle.value().then((doc) => {
-        this._doc = doc;
-        callback(doc);
-      });
+      callback(this._doc);
     }
 
     const listener = async ({

@@ -121,34 +121,27 @@ export class AutomergeStore<T> {
   }
 
   protected set doc(doc: Doc<T>) {
-    const equalArrays = (a: unknown[], b: unknown[]) =>
-      a.length === b.length &&
-      a.every((element, index) => element === b[index]);
-
-    const hasChanged = !equalArrays(getHeads(this._doc), getHeads(doc));
     this._doc = doc;
 
-    if (hasChanged) {
-      if (this.devTools) {
-        if (this.liveChangeId === this.changeCount) {
-          this.liveChangeId++;
-        }
-        this.changeCount++;
-        const lastChange = getLastLocalChange(doc);
-
-        this.devTools.send(
-          {
-            type:
-              (lastChange ? decodeChange(lastChange).message : "@LOAD") ||
-              getHeads(doc).join(","),
-          },
-          doc,
-        );
+    if (this.devTools) {
+      if (this.liveChangeId === this.changeCount) {
+        this.liveChangeId++;
       }
+      this.changeCount++;
+      const lastChange = getLastLocalChange(doc);
 
-      if (this.changeCount === this.liveChangeId) {
-        this.updateSubscribers(doc);
-      }
+      this.devTools.send(
+        {
+          type:
+            (lastChange ? decodeChange(lastChange).message : "@LOAD") ||
+            getHeads(doc).join(","),
+        },
+        doc,
+      );
+    }
+
+    if (this.changeCount === this.liveChangeId) {
+      this.updateSubscribers(doc);
     }
   }
 
@@ -180,9 +173,20 @@ export class AutomergeStore<T> {
     callback: ChangeFn<T>,
     options: ChangeOptions<T> = {},
   ): Doc<T> {
-    this.doc = change<T>(this._doc, options, callback);
+    const doc = change<T>(this._doc, options, callback);
 
-    return this._doc;
+    const equalArrays = (a: unknown[], b: unknown[]) =>
+      a.length === b.length &&
+      a.every((element, index) => element === b[index]);
+
+    const existingHeads = getHeads(this._doc);
+    const newHeads = getHeads(doc);
+
+    if (!equalArrays(existingHeads, newHeads)) {
+      this.doc = doc;
+    }
+
+    return doc;
   }
 
   canUndo() {
@@ -249,7 +253,15 @@ export class AutomergeStore<T> {
     });
   }
 
+  protected setupSubscriptions() {}
+
+  protected teardownSubscriptions() {}
+
   subscribe(callback: (doc: T) => void, fireImmediately: boolean = true) {
+    if (this.subscribers.size === 0) {
+      this.setupSubscriptions();
+    }
+
     if (!this.subscribers.has(callback)) {
       if (fireImmediately) {
         callback(this._doc);
@@ -259,6 +271,9 @@ export class AutomergeStore<T> {
 
     return () => {
       this.subscribers.delete(callback);
+      if (this.subscribers.size === 0) {
+        this.teardownSubscriptions();
+      }
     };
   }
 }

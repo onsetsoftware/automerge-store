@@ -1,6 +1,6 @@
+import { DocHandle, Repo } from "automerge-repo";
 import { beforeEach, describe, expect, test } from "vitest";
 import { AutomergeRepoStore } from "../src";
-import { DocHandle, Repo } from "automerge-repo";
 
 type Structure = {
   count: number;
@@ -27,7 +27,7 @@ describe("Repo tests", () => {
     await store.ready();
   });
 
-  test.only("A document handle can be passed to a store", () => {
+  test("A document handle can be passed to a store", () => {
     expect(store.doc).toEqual({ count: 0, string: "hello" });
 
     return new Promise((done: Function) => {
@@ -38,8 +38,10 @@ describe("Repo tests", () => {
     });
   });
 
-  test("a document can be changed and is updated in the store", () =>
-    new Promise((done: Function) => {
+  test("a document can be changed and is updated in the store", () => {
+    expect(store.doc).toEqual({ count: 0, string: "hello" });
+
+    return new Promise((done: Function) => {
       let firstCall = true;
       store.subscribe((doc) => {
         if (firstCall) {
@@ -58,7 +60,8 @@ describe("Repo tests", () => {
       store.change((doc) => {
         doc.count = 1;
       });
-    }));
+    });
+  });
 
   test("a patch callback can be passed to the change function", () =>
     new Promise((done: Function) => {
@@ -74,6 +77,27 @@ describe("Repo tests", () => {
         },
       );
     }));
+
+  test("a patch callback fires when subscribed", () => {
+    const unsub = store.subscribe((doc) => {
+      expect(doc).toEqual({ count: 0, string: "hello" });
+    });
+
+    return new Promise((done: Function) => {
+      store.change(
+        (doc) => {
+          doc.count = 1;
+          doc.string = "world";
+        },
+        {
+          patchCallback: (_) => {
+            unsub();
+            done();
+          },
+        },
+      );
+    });
+  });
 
   test("a store is marked as ready", () =>
     new Promise(async (done: Function) => {
@@ -109,29 +133,22 @@ describe("Repo tests", () => {
     ]);
     expect(first).toEqual("handle");
 
-    return new Promise<void>((done) => {
-      store.ready().then(() => {
-        const sub = store.subscribe((doc) => {
-          expect(doc).toEqual({ count: 0, string: "hello" });
-          sub();
-          done();
-        });
-      });
-    });
+    expect(store.doc).toEqual({ count: 0, string: "hello" });
   });
 
   test("delayed initial subscribe yeilds the correct value", async () => {
-    await handle.change((doc) => {
+    store.change((doc) => {
       Object.assign(doc, { count: 1, string: "hello world" });
     });
 
-    await new Promise((done) => setTimeout(done, 100));
+    expect(store.doc).toEqual({ count: 1, string: "hello world" });
+  });
 
-    return new Promise<void>((done) => {
-      store.subscribe((doc) => {
-        expect(doc).toEqual({ count: 1, string: "hello world" });
-        done();
-      });
+  test("changes from outside the store update the internal doc", async () => {
+    handle.change((doc) => {
+      Object.assign(doc, { count: 1, string: "hello world" });
     });
+
+    expect(store.doc).toEqual({ count: 1, string: "hello world" });
   });
 });

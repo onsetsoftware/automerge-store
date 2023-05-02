@@ -1,5 +1,9 @@
 import { AutomergeStore, AutomergeStoreOptions } from "./automerge-store";
-import { DocHandle, DocHandlePatchPayload } from "automerge-repo";
+import {
+  DocHandle,
+  DocHandleChangePayload,
+  DocHandlePatchPayload,
+} from "automerge-repo";
 import type {
   ChangeFn,
   ChangeOptions,
@@ -28,11 +32,11 @@ export class AutomergeRepoStore<T> extends AutomergeStore<T> {
     const { patchCallback, ...rest } = options;
 
     if (patchCallback) {
+      // ! we do this for now to make sure that undo/redo patches are created before subscriptions are updated
       if (this.subscriberCount === 0) {
         this.handle.once(
           "patch",
           ({ patches, handle, ...patchInfo }: DocHandlePatchPayload<T>) => {
-            this._doc = patchInfo.after;
             patchCallback(patches, patchInfo as PatchInfo<T>);
           },
         );
@@ -46,35 +50,37 @@ export class AutomergeRepoStore<T> extends AutomergeStore<T> {
     return this._doc;
   }
 
+  protected changeListener = ({ doc }: DocHandleChangePayload<T>) => {
+    this.doc = doc;
+  };
+
+  protected patchListener = ({
+    patches,
+    handle,
+    ...patchInfo
+  }: DocHandlePatchPayload<T>) => {
+    this.patchCallbacks.forEach((cb) => {
+      cb(patches, patchInfo as PatchInfo<T>);
+      this.patchCallbacks.delete(cb);
+    });
+  };
+
+  protected setupSubscriptions() {
+    this.handle.on("change", this.changeListener);
+    this.handle.on("patch", this.patchListener);
+  }
+
+  protected teardownSubscriptions() {
+    this.handle.off("change", this.changeListener);
+    this.handle.off("patch", this.patchListener);
+  }
+
   public subscribe(
     callback: (doc: T) => void,
-    fireImmediately: boolean = true,
-  ) {
-    if (fireImmediately) {
-      callback(this._doc);
-    }
+    fireImmediately?: boolean,
+  ): () => void {
+    this.doc = this.handle.doc;
 
-    const listener = async ({
-      patches,
-      handle,
-      ...patchInfo
-    }: DocHandlePatchPayload<T>) => {
-      this._doc = patchInfo.after;
-
-      this.patchCallbacks.forEach((cb) => {
-        cb(patches, patchInfo as PatchInfo<T>);
-        this.patchCallbacks.delete(cb);
-      });
-
-      callback(patchInfo.after);
-    };
-
-    this.handle.on("patch", listener);
-    this.subscriberCount++;
-
-    return () => {
-      this.handle.off("patch", listener);
-      this.subscriberCount--;
-    };
+    return super.subscribe(callback, fireImmediately);
   }
 }

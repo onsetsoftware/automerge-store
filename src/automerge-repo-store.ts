@@ -75,12 +75,9 @@ export class AutomergeRepoStore<T> extends AutomergeStore<T> {
     this.handle.off("patch", this.patchListener);
   }
 
-  public subscribe(
-    callback: (doc: T) => void,
-    fireImmediately?: boolean,
-  ): () => void {
+  public subscribe(callback: (doc: T) => void): () => void {
     this.doc = this.handle.doc;
 
-    return super.subscribe(callback, fireImmediately);
+    return super.subscribe(callback);
   }
 }

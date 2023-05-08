@@ -257,15 +257,13 @@ export class AutomergeStore<T> {
 
   protected teardownSubscriptions() {}
 
-  subscribe(callback: (doc: T) => void, fireImmediately: boolean = true) {
+  subscribe(callback: (doc: T) => void) {
     if (this.subscribers.size === 0) {
       this.setupSubscriptions();
     }
 
     if (!this.subscribers.has(callback)) {
-      if (fireImmediately) {
-        callback(this._doc);
-      }
+      callback(this._doc);
       this.subscribers.add(callback);
     }
 

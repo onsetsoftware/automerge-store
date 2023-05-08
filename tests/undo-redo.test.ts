@@ -331,6 +331,9 @@ describe("automerge document manager tests", () => {
 
       const expectations = [
         (doc: DocStructure) => {
+          expect({ ...doc }.hello).toEqual(["hello"]);
+        },
+        (doc: DocStructure) => {
           expect({ ...doc }.hello).toEqual(["hello", "world"]);
           manager.undo();
         },
@@ -347,7 +350,7 @@ describe("automerge document manager tests", () => {
       manager.subscribe((doc) => {
         expectations[calls](doc);
         calls++;
-      }, false);
+      });
 
       manager.change((doc) => {
         doc.hello.push("world");

@@ -1,6 +1,8 @@
 import { DocHandle, Repo } from "automerge-repo";
 import { beforeEach, describe, expect, test } from "vitest";
 import { AutomergeRepoStore } from "../src";
+import { DummyStorageAdapter } from "./helpers/dummy-storage-adapter";
+import { init, load, save } from "@automerge/automerge";
 
 type Structure = {
   count: number;
@@ -10,11 +12,15 @@ type Structure = {
 let repo: Repo;
 let handle: DocHandle<Structure>;
 let store: AutomergeRepoStore<Structure>;
+let storage: DummyStorageAdapter;
 
 describe("Repo tests", () => {
   beforeEach(async () => {
+    storage = new DummyStorageAdapter();
+
     repo = new Repo({
       network: [],
+      storage,
     });
 
     handle = repo.create<Structure>();
@@ -42,20 +48,24 @@ describe("Repo tests", () => {
     expect(store.doc).toEqual({ count: 0, string: "hello" });
 
     return new Promise((done: Function) => {
-      let firstCall = true;
+      let calls = 0;
       store.subscribe((doc) => {
-        if (firstCall) {
+        if (calls === 0) {
+          expect({ ...doc }).toEqual({ count: 0, string: "hello" });
+          calls++;
+          return;
+        } else if (calls === 1) {
           expect({ ...doc }).toEqual({ count: 1, string: "hello" });
-          firstCall = false;
 
           store.change((doc) => {
             doc.count = 2;
           });
+          calls++;
           return;
         }
         expect({ ...doc }).toEqual({ count: 2, string: "hello" });
         done();
-      }, false);
+      });
 
       store.change((doc) => {
         doc.count = 1;
@@ -113,17 +123,38 @@ describe("Repo tests", () => {
     }));
 
   test("store ready promise resolves", () =>
-    new Promise((done: Function) => {
+    new Promise(async (done: Function) => {
       const handle = repo.create<Structure>();
-      const found = repo.find(handle.documentId);
-      const store = new AutomergeRepoStore(found);
+      handle.change((doc) => {
+        Object.assign(doc, { count: 0, string: "hello" });
+      });
 
-      store.ready().then(() => {
-        done();
+      const repo2 = new Repo({
+        network: [],
+        storage,
+      });
+
+      handle.value().then((doc) => {
+        const found = repo2.find(handle.documentId);
+
+        const store = new AutomergeRepoStore(found);
+
+        store.ready().then(() => {
+          expect(store.doc).toEqual({ count: 0, string: "hello" });
+          store.subscribe((doc) => {
+            expect(doc).toEqual({ count: 0, string: "hello" });
+            done();
+          });
+        });
       });
     }));
 
   test("handle value resolves before store ready", async () => {
+    const repo = new Repo({
+      network: [],
+      storage,
+    });
+
     const found = repo.find(handle.documentId);
     const store = new AutomergeRepoStore(found);
 

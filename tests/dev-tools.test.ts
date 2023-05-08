@@ -1,5 +1,5 @@
 import { Repo } from "automerge-repo";
-import { MemoryStorageAdapter } from "automerge-repo-storage-memory";
+import { DummyStorageAdapter } from "./helpers/dummy-storage-adapter";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { AutomergeRepoStore, AutomergeStore } from "../src";
 import { devToolsMock } from "./helpers/dev-tools.mock";
@@ -42,7 +42,7 @@ describe("Dev tools integration", () => {
   });
 
   test("repo store connects to dev tools with a found handle", async () => {
-    const memoryStorage = new MemoryStorageAdapter();
+    const memoryStorage = new DummyStorageAdapter();
     const repo = new Repo({
       storage: memoryStorage,
       network: [],

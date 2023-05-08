@@ -2,7 +2,6 @@ import { DocHandle, Repo } from "automerge-repo";
 import { beforeEach, describe, expect, test } from "vitest";
 import { AutomergeRepoStore } from "../src";
 import { DummyStorageAdapter } from "./helpers/dummy-storage-adapter";
-import { init, load, save } from "@automerge/automerge";
 
 type Structure = {
   count: number;

@@ -24,7 +24,25 @@ describe("Dev tools integration", () => {
 
     await store.ready();
 
-    expect(devToolsMock.connect).toBeCalledWith({ name: "test" });
+    expect(devToolsMock.connect).toBeCalledWith({
+      instanceId: "test",
+      name: "test",
+    });
+  });
+
+  test("correct name is passed to dev tools", async () => {
+    const store = new AutomergeStore(
+      "test",
+      { count: 0 },
+      { withDevTools: true, name: "Main Doc" },
+    );
+
+    await store.ready();
+
+    expect(devToolsMock.connect).toBeCalledWith({
+      instanceId: "test",
+      name: "Main Doc",
+    });
   });
 
   test("repo store connects to dev tools", async () => {
@@ -38,7 +56,10 @@ describe("Dev tools integration", () => {
 
     await store.ready();
 
-    expect(devToolsMock.connect).toBeCalledWith({ name: handle.documentId });
+    expect(devToolsMock.connect).toBeCalledWith({
+      instanceId: handle.documentId,
+      name: handle.documentId,
+    });
   });
 
   test("repo store connects to dev tools with a found handle", async () => {
@@ -68,6 +89,7 @@ describe("Dev tools integration", () => {
     await store.ready();
 
     expect(devToolsMock.connect).toBeCalledWith({
+      instanceId: handle.documentId,
       name: handle.documentId,
     });
   });
@@ -75,6 +97,6 @@ describe("Dev tools integration", () => {
   test("store does not connect to dev tools when not required", () => {
     new AutomergeStore("test", { count: 0 }, { withDevTools: false });
 
-    expect(devToolsMock.connect).not.toBeCalledWith({ name: "test" });
+    expect(devToolsMock.connect).not.toBeCalledWith({ instanceId: "test" });
   });
 });

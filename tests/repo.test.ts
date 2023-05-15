@@ -113,10 +113,11 @@ describe("Repo tests", () => {
       const handle = repo.create<Structure>();
       const found = repo.find(handle.documentId);
       const store = new AutomergeRepoStore(found);
+      expect(store.isReady).toBe(false);
 
       store.onReady(async () => {
         expect(await found.value()).toBeDefined();
-
+        expect(store.isReady).toBe(true);
         done();
       });
     }));
@@ -166,12 +167,16 @@ describe("Repo tests", () => {
     expect(store.doc).toEqual({ count: 0, string: "hello" });
   });
 
-  test("delayed initial subscribe yeilds the correct value", async () => {
+  test("delayed initial subscribe yields the correct value", async () => {
     store.change((doc) => {
       Object.assign(doc, { count: 1, string: "hello world" });
     });
 
-    expect(store.doc).toEqual({ count: 1, string: "hello world" });
+    store.change((doc) => {
+      doc.count = 2;
+    });
+
+    expect(store.doc).toEqual({ count: 2, string: "hello world" });
   });
 
   test("changes from outside the store update the internal doc", async () => {

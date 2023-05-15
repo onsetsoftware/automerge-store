@@ -102,6 +102,10 @@ export class AutomergeStore<T> {
     }
   }
 
+  get isReady() {
+    return this._ready;
+  }
+
   ready() {
     return new Promise<void>((resolve) => {
       if (this._ready) {

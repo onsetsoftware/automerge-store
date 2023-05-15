@@ -23,7 +23,7 @@
     "vitest": "^0.29.0"
   },
   "peerDependencies": {
-    "automerge-repo": "https://gitpkg.now.sh/onsetsoftware/automerge-repo/packages/automerge-repo?dummy-release-0.0.51-2"
+    "automerge-repo": "0.0.52"
   },
   "dependencies": {
     "@automerge/automerge": "^2.0.3",

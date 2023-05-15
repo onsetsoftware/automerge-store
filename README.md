@@ -109,6 +109,31 @@ store.canUndo();
 store.canRedo();
 ```
 
+## Transactions
+
+If you need to group a number of changes from different parts of your application into a single undo/redo action, you can use transactions:
+
+```typescript
+store.transaction(() => {
+  store.change((doc) => {
+    doc.count += 1;
+  });
+
+  store.change((doc) => {
+    doc.count += 1;
+  });
+
+  store.change((doc) => {
+    doc.count += 1;
+  });
+});
+
+console.log(store.doc.count); // 3
+
+// undoing the transaction will undo all of the changes
+store.undo(); // doc.count === 0
+```
+
 ## Redux Dev Tools
 
 Opt in to Redux Dev Tools support by passing the `devTools` option to the constructor:

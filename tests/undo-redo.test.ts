@@ -357,4 +357,44 @@ describe("automerge document manager tests", () => {
       });
     });
   });
+
+  test("undo with a transaction", () => {
+    type DocStructure = {
+      hello: {
+        world: string;
+        data?: string;
+      };
+    };
+
+    let doc = init<DocStructure>();
+
+    const manager = new AutomergeStore<DocStructure>(
+      "docId",
+      change<DocStructure>(doc, (d) => {
+        d.hello = {
+          world: "hello",
+        };
+      }),
+    );
+
+    manager.transaction(() => {
+      manager.change((doc) => {
+        doc.hello.world = "world";
+      });
+
+      manager.change((doc) => {
+        doc.hello.world = "world!";
+      });
+    });
+
+    expect(manager.doc.hello.world).toEqual("world!");
+
+    manager.undo();
+
+    expect(manager.doc.hello.world).toEqual("hello");
+
+    manager.redo();
+
+    expect(manager.doc.hello.world).toEqual("world!");
+  });
 });

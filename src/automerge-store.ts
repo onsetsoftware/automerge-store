@@ -17,6 +17,7 @@ import { get_store_value } from "./utilities/get";
 
 export type AutomergeStoreOptions = {
   withDevTools?: boolean;
+  name?: string;
 };
 
 const defaultOptions = {
@@ -25,7 +26,10 @@ const defaultOptions = {
 
 type WindowWithDevTools = Window & {
   __REDUX_DEVTOOLS_EXTENSION__: {
-    connect: (options?: { name: string }) => ConnectResponse;
+    connect: (options?: {
+      name: string;
+      instanceId: string;
+    }) => ConnectResponse;
   };
 };
 
@@ -83,7 +87,8 @@ export class AutomergeStore<T> {
   private setupDevTools() {
     if (this.options.withDevTools && reduxDevtoolsExtensionExists(window)) {
       this.devTools = window.__REDUX_DEVTOOLS_EXTENSION__.connect({
-        name: this._id,
+        instanceId: this._id,
+        name: this.options.name || this._id,
       });
 
       this.devTools.init(this._doc);
@@ -104,6 +109,27 @@ export class AutomergeStore<T> {
 
   get isReady() {
     return this._ready;
+  }
+
+  private queueing = false;
+  private queuedChanges: ChangeFn<T>[] = [];
+
+  private startTransaction() {
+    this.queueing = true;
+  }
+
+  private endTransaction() {
+    this.queueing = false;
+    this.change((doc) => {
+      this.queuedChanges.forEach((change) => change(doc));
+    });
+    // run all the changes in one go
+  }
+
+  transaction(callback: () => void) {
+    this.startTransaction();
+    callback();
+    this.endTransaction();
   }
 
   ready() {
@@ -165,6 +191,11 @@ export class AutomergeStore<T> {
   }
 
   change(callback: ChangeFn<T>, options: ChangeOptions<T> = {}): Doc<T> {
+    if (this.queueing) {
+      this.queuedChanges.push(callback);
+      return this.doc;
+    }
+
     this.redoStack = [];
 
     return this.makeChange(callback, {

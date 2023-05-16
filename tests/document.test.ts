@@ -1,6 +1,6 @@
+import { decodeChange, from, getLastLocalChange } from "@automerge/automerge";
 import { beforeEach, describe, expect, test } from "vitest";
 import { AutomergeStore } from "../src";
-import { decodeChange, from, getLastLocalChange } from "@automerge/automerge";
 
 type Structure = {
   count: number;

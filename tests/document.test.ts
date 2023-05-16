@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { AutomergeStore } from "../src";
-import { from } from "@automerge/automerge";
+import { decodeChange, from, getLastLocalChange } from "@automerge/automerge";
 
 type Structure = {
   count: number;
@@ -53,6 +53,9 @@ describe("Document tests", () => {
           calls++;
           return;
         }
+        expect(decodeChange(getLastLocalChange(doc)!).message).toEqual(
+          "all the changes",
+        );
         expect({ ...doc }).toEqual({ count: 1, string: "world" });
         done();
       });
@@ -65,7 +68,7 @@ describe("Document tests", () => {
         store.change((doc) => {
           doc.string = "world";
         });
-      });
+      }, "all the changes");
     });
   });
 

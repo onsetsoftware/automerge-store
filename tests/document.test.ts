@@ -72,6 +72,37 @@ describe("Document tests", () => {
     });
   });
 
+  test("transactions are isolated", () => {
+    return new Promise((done: Function) => {
+      let calls = 0;
+      store.subscribe((doc) => {
+        if (calls === 0) {
+          expect({ ...doc }).toEqual({ count: 0, string: "hello" });
+          calls++;
+          return;
+        } else if (calls === 1) {
+          expect({ ...doc }).toEqual({ count: 1, string: "hello" });
+          calls++;
+          return;
+        }
+        expect({ ...doc }).toEqual({ count: 2, string: "hello" });
+        done();
+      });
+
+      store.transaction(() => {
+        store.change((doc) => {
+          doc.count++;
+        });
+      });
+
+      store.transaction(() => {
+        store.change((doc) => {
+          doc.count++;
+        });
+      });
+    });
+  });
+
   test("a document is marked as ready", () =>
     new Promise((done: Function) => {
       store.onReady(() => {

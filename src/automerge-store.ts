@@ -127,6 +127,7 @@ export class AutomergeStore<T> {
       },
       { message },
     );
+    this.queuedChanges = [];
   }
 
   transaction(callback: () => void, message?: string) {

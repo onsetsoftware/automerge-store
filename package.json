@@ -1,6 +1,6 @@
 {
   "name": "@onsetsoftware/automerge-store",
-  "version": "0.7.3",
+  "version": "0.8.0-alpha.0",
   "type": "module",
   "scripts": {
     "dev": "vite",

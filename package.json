@@ -1,6 +1,6 @@
 {
   "name": "@onsetsoftware/automerge-store",
-  "version": "0.8.0-alpha.1",
+  "version": "0.7.4",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -26,8 +26,8 @@
     "automerge-repo": "0.0.52"
   },
   "dependencies": {
-    "@automerge/automerge": "2.1.0-alpha.3",
-    "@onsetsoftware/automerge-patcher": "0.8.0-alpha.1"
+    "@automerge/automerge": "2.0.3",
+    "@onsetsoftware/automerge-patcher": "^0.7.3"
   },
   "files": [
     "dist"

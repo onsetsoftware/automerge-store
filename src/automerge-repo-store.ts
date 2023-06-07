@@ -10,7 +10,6 @@ import type {
   Doc,
   PatchCallback,
 } from "@automerge/automerge";
-import type { PatchInfo } from "@automerge/automerge-wasm";
 
 export class AutomergeRepoStore<T> extends AutomergeStore<T> {
   private patchCallbacks: Set<PatchCallback<T>> = new Set();
@@ -37,7 +36,7 @@ export class AutomergeRepoStore<T> extends AutomergeStore<T> {
         this.handle.once(
           "patch",
           ({ patches, handle, ...patchInfo }: DocHandlePatchPayload<T>) => {
-            patchCallback(patches, patchInfo as PatchInfo<T>);
+            patchCallback(patches, patchInfo);
           },
         );
       } else {
@@ -60,7 +59,7 @@ export class AutomergeRepoStore<T> extends AutomergeStore<T> {
     ...patchInfo
   }: DocHandlePatchPayload<T>) => {
     this.patchCallbacks.forEach((cb) => {
-      cb(patches, patchInfo as PatchInfo<T>);
+      cb(patches, patchInfo);
       this.patchCallbacks.delete(cb);
     });
   };

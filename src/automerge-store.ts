@@ -4,7 +4,6 @@ import {
   type ChangeOptions,
   decodeChange,
   type Doc,
-  Extend,
   getHeads,
   getLastLocalChange,
   type Patch,
@@ -45,7 +44,7 @@ type UndoRedoPatches = {
   redo: Patch[];
 };
 
-export class AutomergeStore<T> {
+export class AutomergeStore<T extends Doc<T>> {
   private subscribers: Set<(doc: Doc<T>) => void> = new Set();
   private onReadySubscribers: Set<() => void> = new Set();
   private options: AutomergeStoreOptions;
@@ -186,7 +185,7 @@ export class AutomergeStore<T> {
       this.undoStack.push({
         undo: [...patches]
           .reverse()
-          .map((patch) => unpatch(info.before as any, patch)),
+          .map((patch) => unpatch(info.before, patch)),
         redo: patches,
       });
 
@@ -236,9 +235,9 @@ export class AutomergeStore<T> {
 
     this.redoStack.push(next);
 
-    this.makeChange((doc: Extend<T>) => {
+    this.makeChange((doc) => {
       for (const patch of next.undo) {
-        applyPatch(doc as any, patch);
+        applyPatch(doc, patch);
       }
     });
   }
@@ -254,7 +253,7 @@ export class AutomergeStore<T> {
 
     this.makeChange((doc) => {
       for (const patch of next.redo) {
-        applyPatch(doc as any, patch);
+        applyPatch(doc, patch);
       }
     });
   }

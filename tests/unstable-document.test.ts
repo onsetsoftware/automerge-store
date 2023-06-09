@@ -33,8 +33,8 @@ describe("Unstable document tests", () => {
     const store = new AutomergeStore<Structure>("test", doc);
 
     store.change((d) => {
-      unstable.splice(d, "string", 5, 0, " world");
-      unstable.splice(d, "string", 1, 3);
+      unstable.splice(d, ["string"], 5, 0, " world");
+      unstable.splice(d, ["string"], 1, 3);
     });
 
     expect(store.doc.string).toEqual("ho world");

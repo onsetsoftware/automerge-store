@@ -26,8 +26,8 @@
     "automerge-repo": "0.0.52"
   },
   "dependencies": {
-    "@automerge/automerge": "2.1.0-alpha.3",
-    "@onsetsoftware/automerge-patcher": "0.8.0-alpha.1"
+    "@automerge/automerge": "2.1.0-alpha.4",
+    "@onsetsoftware/automerge-patcher": "next"
   },
   "files": [
     "dist"

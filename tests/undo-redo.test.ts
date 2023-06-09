@@ -18,7 +18,7 @@ export function reorderArray(
       return p > 1 ? items.splice(i - p + 2, 1).pop() : i;
     });
 
-  items.splice.apply(items, params as any);
+  items.splice.apply(items, params);
 }
 
 describe("automerge document manager tests", () => {

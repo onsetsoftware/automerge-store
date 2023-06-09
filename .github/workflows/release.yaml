@@ -37,8 +37,15 @@ jobs:
       - name: run tests
         id: tests
         run: |
-          npm ci
+          if [ "$BRANCH" = "next" ]; then
+            echo "Installing dependencies for next branch"
+            npm ci --force
+          else
+            npm ci
+          fi
           npx vitest run --no-threads
+        env:
+          BRANCH: ${{ github.ref_name }}
       - name: Build Release
         id: build_release
         run: |

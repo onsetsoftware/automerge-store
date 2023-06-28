@@ -3,7 +3,7 @@ import {
   DocHandle,
   DocHandleChangePayload,
   DocHandlePatchPayload,
-} from "automerge-repo";
+} from "@automerge/automerge-repo";
 import type {
   ChangeFn,
   ChangeOptions,
@@ -36,6 +36,7 @@ export class AutomergeRepoStore<T> extends AutomergeStore<T> {
         this.handle.once(
           "patch",
           ({ patches, handle, ...patchInfo }: DocHandlePatchPayload<T>) => {
+            // @ts-ignore
             patchCallback(patches, patchInfo);
           },
         );
@@ -59,6 +60,7 @@ export class AutomergeRepoStore<T> extends AutomergeStore<T> {
     ...patchInfo
   }: DocHandlePatchPayload<T>) => {
     this.patchCallbacks.forEach((cb) => {
+      // @ts-ignore
       cb(patches, patchInfo);
       this.patchCallbacks.delete(cb);
     });

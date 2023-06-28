@@ -1,4 +1,4 @@
-import { Repo } from "automerge-repo";
+import { Repo } from "@automerge/automerge-repo";
 import { DummyStorageAdapter } from "./helpers/dummy-storage-adapter";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { AutomergeRepoStore, AutomergeStore } from "../src";

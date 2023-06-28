@@ -1,4 +1,4 @@
-import { DocumentId, StorageAdapter } from "automerge-repo";
+import { DocumentId, StorageAdapter } from "@automerge/automerge-repo";
 
 export class DummyStorageAdapter implements StorageAdapter {
   #data: Record<DocumentId, Uint8Array> = {};

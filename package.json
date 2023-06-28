@@ -23,10 +23,10 @@
     "vitest": "^0.32.0"
   },
   "peerDependencies": {
-    "automerge-repo": "0.0.56"
+    "@automerge/automerge-repo": "latest"
   },
   "dependencies": {
-    "@automerge/automerge": "2.1.0-alpha.5",
+    "@automerge/automerge": "next",
     "@onsetsoftware/automerge-patcher": "next"
   },
   "files": [

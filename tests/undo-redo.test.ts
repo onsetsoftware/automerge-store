@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { change, init, Text } from "@automerge/automerge";
 import { AutomergeRepoStore, AutomergeStore } from "../src";
-import { Repo } from "automerge-repo";
+import { Repo } from "@automerge/automerge-repo";
 
 export function reorderArray(
   items: any[],

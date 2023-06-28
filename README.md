@@ -33,8 +33,8 @@ const store = new AutomergeStore(docId, doc);
 
 ```typescript
 import { AutomergeRepoStore } from '@onsetsoftware/automerge-store';
-import { DocHandle, DocumentId, Repo } from "automerge-repo";
-import { LocalForageStorageAdapter } from "automerge-repo-storage-localforage";
+import { DocHandle, DocumentId, Repo } from "@automerge/automerge-repo";
+import { LocalForageStorageAdapter } from "@automerge/automerge-repo-storage-localforage";
 import * as localforage from "localforage";
 
 type DocState = {

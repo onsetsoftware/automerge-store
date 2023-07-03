@@ -23,7 +23,7 @@
     "vitest": "^0.32.0"
   },
   "peerDependencies": {
-    "@automerge/automerge-repo": "latest"
+    "@automerge/automerge-repo": "next"
   },
   "dependencies": {
     "@automerge/automerge": "next",

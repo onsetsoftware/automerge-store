@@ -35,8 +35,7 @@ export class AutomergeRepoStore<T> extends AutomergeStore<T> {
       if (this.subscriberCount === 0) {
         this.handle.once(
           "patch",
-          ({ patches, handle, ...patchInfo }: DocHandlePatchPayload<T>) => {
-            // @ts-ignore
+          ({ patches, patchInfo }: DocHandlePatchPayload<T>) => {
             patchCallback(patches, patchInfo);
           },
         );
@@ -56,11 +55,9 @@ export class AutomergeRepoStore<T> extends AutomergeStore<T> {
 
   protected patchListener = ({
     patches,
-    handle,
-    ...patchInfo
+    patchInfo,
   }: DocHandlePatchPayload<T>) => {
     this.patchCallbacks.forEach((cb) => {
-      // @ts-ignore
       cb(patches, patchInfo);
       this.patchCallbacks.delete(cb);
     });

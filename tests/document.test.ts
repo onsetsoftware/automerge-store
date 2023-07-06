@@ -44,7 +44,7 @@ describe("Document tests", () => {
       );
     }));
 
-  test("transactions can be used to batch changes", () => {
+  test("transactions can be used to batch changes and a message can be set", () => {
     return new Promise((done: Function) => {
       let calls = 0;
       store.subscribe((doc) => {
@@ -69,6 +69,36 @@ describe("Document tests", () => {
           doc.string = "world";
         });
       }, "all the changes");
+    });
+  });
+
+  test("transaction messages can be passed by returning a string from the callback", () => {
+    return new Promise((done: Function) => {
+      let calls = 0;
+      store.subscribe((doc) => {
+        if (calls === 0) {
+          expect({ ...doc }).toEqual({ count: 0, string: "hello" });
+          calls++;
+          return;
+        }
+        expect(decodeChange(getLastLocalChange(doc)!).message).toEqual(
+          "all the changes",
+        );
+        expect({ ...doc }).toEqual({ count: 1, string: "world" });
+        done();
+      });
+
+      store.transaction(() => {
+        store.change((doc) => {
+          doc.count = 1;
+        });
+
+        store.change((doc) => {
+          doc.string = "world";
+        });
+
+        return "all the changes";
+      });
     });
   });
 

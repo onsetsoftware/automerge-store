@@ -134,6 +134,31 @@ console.log(store.doc.count); // 3
 store.undo(); // doc.count === 0
 ```
 
+### Transaction messages
+
+You can also pass a message to the transaction, which will be passed to automerge as the change message and displayed in Redux Dev Tools. Either return a string from the transaction function, or pass it as the second argument:
+
+```typescript
+store.transaction(() => {
+  store.change((doc) => {
+    doc.count += 1;
+  });
+
+  store.change((doc) => {
+    doc.count += 1;
+  });
+
+  store.change((doc) => {
+    doc.count += 1;
+  });
+
+  return "Incremented count";
+},
+// alternatively you can pass the message as the second argument. The return value will be used if both are provided
+"Incremented count"
+);
+```
+
 ## Redux Dev Tools
 
 Opt in to Redux Dev Tools support by passing the `devTools` option to the constructor:

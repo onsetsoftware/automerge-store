@@ -129,10 +129,10 @@ export class AutomergeStore<T extends Doc<T>> {
     this.queuedChanges = [];
   }
 
-  transaction(callback: () => void, message?: string) {
+  transaction(callback: () => string | void, message?: string) {
     this.startTransaction();
-    callback();
-    this.endTransaction(message);
+    const m = callback();
+    this.endTransaction(m ?? message);
   }
 
   ready() {

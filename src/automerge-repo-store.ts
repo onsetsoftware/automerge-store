@@ -1,15 +1,12 @@
 import { AutomergeStore, AutomergeStoreOptions } from "./automerge-store";
-import {
-  DocHandle,
-  DocHandleChangePayload,
-  DocHandlePatchPayload,
-} from "@automerge/automerge-repo";
+import { DocHandle, DocHandleChangePayload } from "@automerge/automerge-repo";
 import type {
   ChangeFn,
   ChangeOptions,
   Doc,
   PatchCallback,
 } from "@automerge/automerge";
+import { unpatch } from "@onsetsoftware/automerge-patcher";
 
 export class AutomergeRepoStore<T> extends AutomergeStore<T> {
   private patchCallbacks: Set<PatchCallback<T>> = new Set();
@@ -17,16 +14,16 @@ export class AutomergeRepoStore<T> extends AutomergeStore<T> {
 
   constructor(
     private handle: DocHandle<T>,
-    options: AutomergeStoreOptions = {},
+    options: AutomergeStoreOptions = {}
   ) {
-    super(handle.documentId, handle.value(), options);
+    super(handle.documentId, handle.doc(), options);
 
     this._ready = false;
   }
 
   protected makeChange(
     callback: ChangeFn<T>,
-    options: ChangeOptions<T> = {},
+    options: ChangeOptions<T> = {}
   ): Doc<T> {
     const { patchCallback, ...rest } = options;
 
@@ -34,10 +31,10 @@ export class AutomergeRepoStore<T> extends AutomergeStore<T> {
       // ! we do this for now to make sure that undo/redo patches are created before subscriptions are updated
       if (this.subscriberCount === 0) {
         this.handle.once(
-          "patch",
-          ({ patches, patchInfo }: DocHandlePatchPayload<T>) => {
+          "change",
+          ({ patches, patchInfo }: DocHandleChangePayload<T>) => {
             patchCallback(patches, patchInfo);
-          },
+          }
         );
       } else {
         this.patchCallbacks.add(patchCallback);
@@ -49,32 +46,40 @@ export class AutomergeRepoStore<T> extends AutomergeStore<T> {
     return this._doc;
   }
 
-  protected changeListener = ({ doc }: DocHandleChangePayload<T>) => {
-    this.doc = doc;
-  };
-
-  protected patchListener = ({
+  protected changeListener = ({
+    doc,
     patches,
     patchInfo,
-  }: DocHandlePatchPayload<T>) => {
-    this.patchCallbacks.forEach((cb) => {
-      cb(patches, patchInfo);
-      this.patchCallbacks.delete(cb);
+  }: DocHandleChangePayload<T>) => {
+    this.undoStack.push({
+      undo: [...patches]
+        .reverse()
+        .map((patch) => unpatch(patchInfo.before, patch)),
+      redo: patches,
     });
+
+    this.patchCallbacks.forEach((callback) => {
+      callback(patches, patchInfo);
+    });
+
+    this.patchCallbacks.clear();
+
+    this.doc = doc;
   };
 
   protected setupSubscriptions() {
     this.handle.on("change", this.changeListener);
-    this.handle.on("patch", this.patchListener);
   }
 
   protected teardownSubscriptions() {
     this.handle.off("change", this.changeListener);
-    this.handle.off("patch", this.patchListener);
   }
 
   public subscribe(callback: (doc: T) => void): () => void {
-    this.doc = this.handle.doc;
+    const doc = this.handle.docSync();
+    if (doc) {
+      this.doc = doc;
+    }
 
     return super.subscribe(callback);
   }

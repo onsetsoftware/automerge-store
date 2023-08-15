@@ -20,7 +20,7 @@
     "vite-plugin-externalize-deps": "^0.7.0",
     "vite-plugin-top-level-await": "^1.2.1",
     "vite-plugin-wasm": "^3.1.0",
-    "vitest": "^0.32.0"
+    "vitest": "^0.34.0"
   },
   "peerDependencies": {
     "@automerge/automerge-repo": "next"

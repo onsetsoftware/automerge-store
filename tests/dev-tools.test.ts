@@ -19,7 +19,7 @@ describe("Dev tools integration", () => {
     const store = new AutomergeStore(
       "test",
       { count: 0 },
-      { withDevTools: true },
+      { withDevTools: true }
     );
 
     await store.ready();
@@ -34,7 +34,7 @@ describe("Dev tools integration", () => {
     const store = new AutomergeStore(
       "test",
       { count: 0 },
-      { withDevTools: true, name: "Main Doc" },
+      { withDevTools: true, name: "Main Doc" }
     );
 
     await store.ready();
@@ -82,7 +82,7 @@ describe("Dev tools integration", () => {
       network: [],
     });
 
-    const store = new AutomergeRepoStore(repo2.find(handle.documentId), {
+    const store = new AutomergeRepoStore(repo2.find(handle.url), {
       withDevTools: true,
     });
 

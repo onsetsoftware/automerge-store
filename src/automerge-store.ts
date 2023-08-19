@@ -34,7 +34,7 @@ type WindowWithDevTools = Window & {
 };
 
 const reduxDevtoolsExtensionExists = (
-  arg: Window | WindowWithDevTools,
+  arg: Window | WindowWithDevTools
 ): arg is WindowWithDevTools => {
   return "__REDUX_DEVTOOLS_EXTENSION__" in arg;
 };
@@ -63,16 +63,18 @@ export class AutomergeStore<T extends Doc<T>> {
 
   constructor(
     protected _id: string,
-    _doc: Doc<T> | Promise<Doc<T>>,
-    options: AutomergeStoreOptions = {},
+    _doc: Doc<T> | Promise<Doc<T> | undefined>,
+    options: AutomergeStoreOptions = {}
   ) {
     this.options = { ...defaultOptions, ...options };
 
     if (_doc instanceof Promise) {
       _doc.then(async (doc) => {
-        this._doc = doc;
-        await new Promise((resolve) => setTimeout(resolve));
-        this.setReady();
+        if (doc) {
+          this._doc = doc;
+          await new Promise((resolve) => setTimeout(resolve));
+          this.setReady();
+        }
       });
     } else {
       this._doc = _doc;
@@ -124,7 +126,7 @@ export class AutomergeStore<T extends Doc<T>> {
       (doc) => {
         this.queuedChanges.forEach((change) => change(doc));
       },
-      { message },
+      { message }
     );
     this.queuedChanges = [];
   }
@@ -168,7 +170,7 @@ export class AutomergeStore<T extends Doc<T>> {
               (lastChange ? decodeChange(lastChange).message : "@LOAD") ||
               getHeads(doc).join(","),
           },
-          doc,
+          doc
         );
       }
 
@@ -211,7 +213,7 @@ export class AutomergeStore<T extends Doc<T>> {
 
   protected makeChange(
     callback: ChangeFn<T>,
-    options: ChangeOptions<T> = {},
+    options: ChangeOptions<T> = {}
   ): Doc<T> {
     this.doc = change<T>(this._doc, options, callback);
 

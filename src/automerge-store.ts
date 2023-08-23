@@ -61,6 +61,8 @@ export class AutomergeStore<T extends Doc<T>> {
 
   protected _doc!: Doc<T>;
 
+  protected performingUndoRedo = false;
+
   constructor(
     protected _id: string,
     _doc: Doc<T> | Promise<Doc<T> | undefined>,
@@ -217,6 +219,7 @@ export class AutomergeStore<T extends Doc<T>> {
   ): Doc<T> {
     this.doc = change<T>(this._doc, options, callback);
 
+    this.performingUndoRedo = false;
     return this.doc;
   }
 
@@ -233,6 +236,8 @@ export class AutomergeStore<T extends Doc<T>> {
       return;
     }
 
+    this.performingUndoRedo = true;
+
     const next = this.undoStack.pop()!;
 
     this.redoStack.push(next);
@@ -248,6 +253,8 @@ export class AutomergeStore<T extends Doc<T>> {
     if (!this.canRedo()) {
       return;
     }
+
+    this.performingUndoRedo = true;
 
     const next = this.redoStack.pop()!;
 

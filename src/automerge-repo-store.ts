@@ -51,12 +51,17 @@ export class AutomergeRepoStore<T> extends AutomergeStore<T> {
     patches,
     patchInfo,
   }: DocHandleChangePayload<T>) => {
-    this.undoStack.push({
-      undo: [...patches]
-        .reverse()
-        .map((patch) => unpatch(patchInfo.before, patch)),
-      redo: patches,
-    });
+    if (!this.performingUndoRedo) {
+      this.undoStack.push({
+        undo: [...patches]
+          .reverse()
+          .map((patch) => unpatch(patchInfo.before, patch)),
+        redo: patches,
+      });
+      this.redoStack = [];
+    } else {
+      this.performingUndoRedo = false;
+    }
 
     this.patchCallbacks.forEach((callback) => {
       callback(patches, patchInfo);
@@ -66,6 +71,14 @@ export class AutomergeRepoStore<T> extends AutomergeStore<T> {
 
     this.doc = doc;
   };
+
+  protected patchCallback(options: ChangeOptions<T>): PatchCallback<T> {
+    return (patches, info) => {
+      if (options.patchCallback) {
+        options.patchCallback(patches, info);
+      }
+    };
+  }
 
   protected setupSubscriptions() {
     this.handle.on("change", this.changeListener);

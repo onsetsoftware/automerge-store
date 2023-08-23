@@ -6,13 +6,13 @@ import { Repo } from "@automerge/automerge-repo";
 export function reorderArray(
   items: any[],
   indexes: number[],
-  insertIndex: number,
+  insertIndex: number
 ) {
   const params = [insertIndex, 0]
     .concat(
       indexes.sort(function (a, b) {
         return a - b;
-      }),
+      })
     )
     .map(function (i, p) {
       return p > 1 ? items.splice(i - p + 2, 1).pop() : i;
@@ -36,7 +36,7 @@ describe("automerge document manager tests", () => {
       change<DocStructure>(doc, (d) => {
         d.hello = new Text();
         d.hello.insertAt(0, ..."hello".split(""));
-      }),
+      })
     );
 
     manager.change((doc) => {
@@ -64,7 +64,7 @@ describe("automerge document manager tests", () => {
       change<DocStructure>(doc, (d) => {
         d.hello = new Text();
         d.hello.insertAt(0, ..."hello".split(""));
-      }),
+      })
     );
 
     manager.change((doc) => {
@@ -93,7 +93,7 @@ describe("automerge document manager tests", () => {
       "docId",
       change<DocStructure>(doc, (d) => {
         Object.assign(d, { hello: ["hello"] });
-      }),
+      })
     );
 
     manager.change((doc) => {
@@ -122,7 +122,7 @@ describe("automerge document manager tests", () => {
       "docId",
       change<DocStructure>(doc, (d) => {
         Object.assign(d, { hello: ["hello", "world"] });
-      }),
+      })
     );
 
     manager.change((doc) => {
@@ -151,7 +151,7 @@ describe("automerge document manager tests", () => {
       "docId",
       change<DocStructure>(doc, (d) => {
         Object.assign(d, { hello: ["hello", "there", "world"] });
-      }),
+      })
     );
 
     manager.change((doc) => {
@@ -185,7 +185,7 @@ describe("automerge document manager tests", () => {
         d.hello = {
           world: "hello",
         };
-      }),
+      })
     );
 
     manager.change((doc) => {
@@ -220,7 +220,7 @@ describe("automerge document manager tests", () => {
           world: "hello",
           data: "data",
         };
-      }),
+      })
     );
 
     manager.change((doc) => {
@@ -265,7 +265,7 @@ describe("automerge document manager tests", () => {
             entities: {},
           },
         });
-      }),
+      })
     );
 
     manager.change((doc) => {
@@ -335,14 +335,34 @@ describe("automerge document manager tests", () => {
         },
         (doc: DocStructure) => {
           expect({ ...doc }.hello).toEqual(["hello", "world"]);
+          expect(manager.canUndo()).toEqual(true);
+          expect(manager.canRedo()).toEqual(false);
           manager.undo();
         },
         (doc: DocStructure) => {
           expect({ ...doc }.hello).toEqual(["hello"]);
+          expect(manager.canUndo()).toEqual(false);
+          expect(manager.canRedo()).toEqual(true);
           manager.redo();
         },
         (doc: DocStructure) => {
           expect({ ...doc }.hello).toEqual(["hello", "world"]);
+          expect(manager.canUndo()).toEqual(true);
+          expect(manager.canRedo()).toEqual(false);
+          manager.undo();
+        },
+        (doc: DocStructure) => {
+          expect({ ...doc }.hello).toEqual(["hello"]);
+          expect(manager.canUndo()).toEqual(false);
+          expect(manager.canRedo()).toEqual(true);
+          manager.change((doc) => {
+            doc.hello.push("world!");
+          });
+        },
+        (doc: DocStructure) => {
+          expect({ ...doc }.hello).toEqual(["hello", "world!"]);
+          expect(manager.canUndo()).toEqual(true);
+          expect(manager.canRedo()).toEqual(false);
           done();
         },
       ];
@@ -374,7 +394,7 @@ describe("automerge document manager tests", () => {
         d.hello = {
           world: "hello",
         };
-      }),
+      })
     );
 
     manager.transaction(() => {

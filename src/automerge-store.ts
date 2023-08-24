@@ -11,7 +11,10 @@ import {
 } from "@automerge/automerge";
 import type { ConnectResponse } from "./dev-tools";
 
-import { patch as applyPatch, unpatch } from "@onsetsoftware/automerge-patcher";
+import {
+  patch as applyPatch,
+  unpatchAll,
+} from "@onsetsoftware/automerge-patcher";
 import { get } from "./utilities/get";
 import { equalArrays } from "./utilities/equal-arrays";
 
@@ -187,9 +190,7 @@ export class AutomergeStore<T extends Doc<T>> {
   protected patchCallback(options: ChangeOptions<T>): PatchCallback<T> {
     return (patches, info) => {
       this.undoStack.push({
-        undo: [...patches]
-          .reverse()
-          .map((patch) => unpatch(info.before, patch)),
+        undo: unpatchAll(info.before, patches),
         redo: patches,
       });
 

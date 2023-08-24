@@ -6,7 +6,7 @@ import type {
   Doc,
   PatchCallback,
 } from "@automerge/automerge";
-import { unpatch } from "@onsetsoftware/automerge-patcher";
+import { unpatchAll } from "@onsetsoftware/automerge-patcher";
 
 export class AutomergeRepoStore<T> extends AutomergeStore<T> {
   private patchCallbacks: Set<PatchCallback<T>> = new Set();
@@ -53,9 +53,7 @@ export class AutomergeRepoStore<T> extends AutomergeStore<T> {
   }: DocHandleChangePayload<T>) => {
     if (!this.performingUndoRedo) {
       this.undoStack.push({
-        undo: [...patches]
-          .reverse()
-          .map((patch) => unpatch(patchInfo.before, patch)),
+        undo: unpatchAll(patchInfo.before, patches),
         redo: patches,
       });
       this.redoStack = [];

@@ -21,10 +21,12 @@ import { equalArrays } from "./utilities/equal-arrays";
 export type AutomergeStoreOptions = {
   withDevTools?: boolean;
   name?: string;
+  withUndoRedo?: boolean;
 };
 
 const defaultOptions = {
   withDevTools: false,
+  withUndoRedo: true,
 };
 
 type WindowWithDevTools = Window & {
@@ -50,7 +52,7 @@ type UndoRedoPatches = {
 export class AutomergeStore<T extends Doc<T>> {
   private subscribers: Set<(doc: Doc<T>) => void> = new Set();
   private onReadySubscribers: Set<() => void> = new Set();
-  private options: AutomergeStoreOptions;
+  protected options: AutomergeStoreOptions;
 
   // dev tools parameters
   private devTools: ConnectResponse | undefined;
@@ -189,10 +191,12 @@ export class AutomergeStore<T extends Doc<T>> {
 
   protected patchCallback(options: ChangeOptions<T>): PatchCallback<T> {
     return (patches, info) => {
-      this.undoStack.push({
-        undo: unpatchAll(info.before, patches),
-        redo: patches,
-      });
+      if (this.options.withUndoRedo) {
+        this.undoStack.push({
+          undo: unpatchAll(info.before, patches),
+          redo: patches,
+        });
+      }
 
       if (options.patchCallback) {
         options.patchCallback(patches, info);

@@ -51,7 +51,7 @@ export class AutomergeRepoStore<T> extends AutomergeStore<T> {
     patches,
     patchInfo,
   }: DocHandleChangePayload<T>) => {
-    if (!this.performingUndoRedo) {
+    if (!this.performingUndoRedo && this.options.withUndoRedo) {
       this.undoStack.push({
         undo: unpatchAll(patchInfo.before, patches),
         redo: patches,

@@ -1,14 +1,12 @@
-import { AutomergeStore, AutomergeStoreOptions } from "./automerge-store";
-import { DocHandle, DocHandleChangePayload } from "@automerge/automerge-repo";
 import type {
-  ChangeFn,
-  ChangeOptions,
-  Doc,
-  PatchCallback,
+    ChangeFn,
+    ChangeOptions,
+    Doc,
+    PatchCallback,
 } from "@automerge/automerge";
+import { DocHandle, DocHandleChangePayload } from "@automerge/automerge-repo";
 import { unpatchAll } from "@onsetsoftware/automerge-patcher";
-
-import type { PatchInfo } from "@automerge/automerge-wasm";
+import { AutomergeStore, AutomergeStoreOptions } from "./automerge-store";
 
 export class AutomergeRepoStore<T> extends AutomergeStore<T> {
   private patchCallbacks: Set<PatchCallback<T>> = new Set();

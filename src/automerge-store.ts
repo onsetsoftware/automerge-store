@@ -1,22 +1,22 @@
 import {
-  change,
-  type ChangeFn,
-  type ChangeOptions,
-  decodeChange,
-  type Doc,
-  getHeads,
-  getLastLocalChange,
-  type Patch,
-  PatchCallback,
+    PatchCallback,
+    change,
+    decodeChange,
+    getHeads,
+    getLastLocalChange,
+    type ChangeFn,
+    type ChangeOptions,
+    type Doc,
+    type Patch,
 } from "@automerge/automerge";
 import type { ConnectResponse } from "./dev-tools";
 
 import {
-  patch as applyPatch,
-  unpatchAll,
+    patch as applyPatch,
+    unpatchAll,
 } from "@onsetsoftware/automerge-patcher";
-import { get } from "./utilities/get";
 import { equalArrays } from "./utilities/equal-arrays";
+import { get } from "./utilities/get";
 
 export type AutomergeStoreOptions = {
   withDevTools?: boolean;
@@ -296,9 +296,9 @@ export class AutomergeStore<T extends Doc<T>> {
     });
   }
 
-  protected setupSubscriptions() {}
+  protected setupSubscriptions() { }
 
-  protected teardownSubscriptions() {}
+  protected teardownSubscriptions() { } 
 
   subscribe(callback: (doc: T) => void) {
     if (this.subscribers.size === 0) {

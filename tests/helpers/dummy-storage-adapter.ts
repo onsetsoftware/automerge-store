@@ -1,20 +1,44 @@
-import { DocumentId, StorageAdapter } from "automerge-repo";
+import { StorageAdapter, StorageKey } from "@automerge/automerge-repo";
 
 export class DummyStorageAdapter implements StorageAdapter {
-  #data: Record<DocumentId, Uint8Array> = {};
+  #data: Record<string, Uint8Array> = {};
 
-  load(docId: DocumentId) {
-    return new Promise<Uint8Array | null>((resolve) =>
-      resolve(this.#data[docId] || null),
+  #keyToString(key: string[]): string {
+    return key.join(".");
+  }
+
+  #stringToKey(key: string): string[] {
+    return key.split(".");
+  }
+
+  async loadRange(
+    keyPrefix: StorageKey
+  ): Promise<{ data: Uint8Array; key: StorageKey }[]> {
+    const range = Object.entries(this.#data)
+      .filter(([key, _]) => key.startsWith(this.#keyToString(keyPrefix)))
+      .map(([key, data]) => ({ key: this.#stringToKey(key), data }));
+    return Promise.resolve(range);
+  }
+
+  async removeRange(keyPrefix: string[]): Promise<void> {
+    Object.entries(this.#data)
+      .filter(([key, _]) => key.startsWith(this.#keyToString(keyPrefix)))
+      .forEach(([key, _]) => delete this.#data[key]);
+  }
+
+  async load(key: string[]): Promise<Uint8Array | undefined> {
+    return new Promise((resolve) =>
+      resolve(this.#data[this.#keyToString(key)])
     );
   }
 
-  save(docId: DocumentId, binary: Uint8Array) {
-    this.#data[docId] = binary;
+  async save(key: string[], binary: Uint8Array) {
+    this.#data[this.#keyToString(key)] = binary;
+    return Promise.resolve();
   }
 
-  remove(docId: DocumentId) {
-    delete this.#data[docId];
+  async remove(key: string[]) {
+    delete this.#data[this.#keyToString(key)];
   }
 
   keys() {

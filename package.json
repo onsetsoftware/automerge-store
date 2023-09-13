@@ -16,11 +16,11 @@
     "jsdom": "^21.0.0",
     "typescript": "^5.0.0",
     "vite": "^4.1.0",
-    "vite-plugin-dts": "^2.1.0",
-    "vite-plugin-externalize-deps": "^0.6.0",
+    "vite-plugin-dts": "^3.0.0",
+    "vite-plugin-externalize-deps": "^0.7.0",
     "vite-plugin-top-level-await": "^1.2.1",
     "vite-plugin-wasm": "^3.1.0",
-    "vitest": "^0.32.0"
+    "vitest": "^0.34.0"
   },
   "peerDependencies": {
     "@automerge/automerge-repo": "^1.0.0"
@@ -32,12 +32,12 @@
   "files": [
     "dist"
   ],
-  "main": "./dist/automerge-store.umd.js",
-  "module": "./dist/automerge-store.es.js",
+  "main": "./dist/automerge-store.umd.cjs",
+  "module": "./dist/automerge-store.js",
   "exports": {
     ".": {
-      "import": "./dist/automerge-store.es.js",
-      "require": "./dist/automerge-store.umd.js",
+      "import": "./dist/automerge-store.js",
+      "require": "./dist/automerge-store.umd.cjs",
       "types": "./dist/types/index.d.ts"
     }
   },

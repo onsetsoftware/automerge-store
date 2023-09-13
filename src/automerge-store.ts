@@ -4,7 +4,6 @@ import {
   type ChangeOptions,
   decodeChange,
   type Doc,
-  Extend,
   getHeads,
   getLastLocalChange,
   type Patch,
@@ -12,17 +11,22 @@ import {
 } from "@automerge/automerge";
 import type { ConnectResponse } from "./dev-tools";
 
-import { patch as applyPatch, unpatch } from "@onsetsoftware/automerge-patcher";
+import {
+  patch as applyPatch,
+  unpatchAll,
+} from "@onsetsoftware/automerge-patcher";
 import { get } from "./utilities/get";
 import { equalArrays } from "./utilities/equal-arrays";
 
 export type AutomergeStoreOptions = {
   withDevTools?: boolean;
   name?: string;
+  withUndoRedo?: boolean;
 };
 
 const defaultOptions = {
   withDevTools: false,
+  withUndoRedo: true,
 };
 
 type WindowWithDevTools = Window & {
@@ -35,7 +39,7 @@ type WindowWithDevTools = Window & {
 };
 
 const reduxDevtoolsExtensionExists = (
-  arg: Window | WindowWithDevTools,
+  arg: Window | WindowWithDevTools
 ): arg is WindowWithDevTools => {
   return "__REDUX_DEVTOOLS_EXTENSION__" in arg;
 };
@@ -45,10 +49,10 @@ type UndoRedoPatches = {
   redo: Patch[];
 };
 
-export class AutomergeStore<T> {
+export class AutomergeStore<T extends Doc<T>> {
   private subscribers: Set<(doc: Doc<T>) => void> = new Set();
   private onReadySubscribers: Set<() => void> = new Set();
-  private options: AutomergeStoreOptions;
+  protected options: AutomergeStoreOptions;
 
   // dev tools parameters
   private devTools: ConnectResponse | undefined;
@@ -62,18 +66,22 @@ export class AutomergeStore<T> {
 
   protected _doc!: Doc<T>;
 
+  protected performingUndoRedo = false;
+
   constructor(
     protected _id: string,
-    _doc: Doc<T> | Promise<Doc<T>>,
-    options: AutomergeStoreOptions = {},
+    _doc: Doc<T> | Promise<Doc<T> | undefined>,
+    options: AutomergeStoreOptions = {}
   ) {
     this.options = { ...defaultOptions, ...options };
 
     if (_doc instanceof Promise) {
       _doc.then(async (doc) => {
-        this._doc = doc;
-        await new Promise((resolve) => setTimeout(resolve));
-        this.setReady();
+        if (doc) {
+          this._doc = doc;
+          await new Promise((resolve) => setTimeout(resolve));
+          this.setReady();
+        }
       });
     } else {
       this._doc = _doc;
@@ -125,15 +133,15 @@ export class AutomergeStore<T> {
       (doc) => {
         this.queuedChanges.forEach((change) => change(doc));
       },
-      { message },
+      { message }
     );
     this.queuedChanges = [];
   }
 
-  transaction(callback: () => void, message?: string) {
+  transaction(callback: () => string | void, message?: string) {
     this.startTransaction();
-    callback();
-    this.endTransaction(message);
+    const m = callback();
+    this.endTransaction(m ?? message);
   }
 
   ready() {
@@ -169,7 +177,7 @@ export class AutomergeStore<T> {
               (lastChange ? decodeChange(lastChange).message : "@LOAD") ||
               getHeads(doc).join(","),
           },
-          doc,
+          doc
         );
       }
 
@@ -183,12 +191,12 @@ export class AutomergeStore<T> {
 
   protected patchCallback(options: ChangeOptions<T>): PatchCallback<T> {
     return (patches, info) => {
-      this.undoStack.push({
-        undo: [...patches]
-          .reverse()
-          .map((patch) => unpatch(info.before as any, patch)),
-        redo: patches,
-      });
+      if (this.options.withUndoRedo) {
+        this.undoStack.push({
+          undo: unpatchAll(info.before, patches),
+          redo: patches,
+        });
+      }
 
       if (options.patchCallback) {
         options.patchCallback(patches, info);
@@ -212,10 +220,11 @@ export class AutomergeStore<T> {
 
   protected makeChange(
     callback: ChangeFn<T>,
-    options: ChangeOptions<T> = {},
+    options: ChangeOptions<T> = {}
   ): Doc<T> {
     this.doc = change<T>(this._doc, options, callback);
 
+    this.performingUndoRedo = false;
     return this.doc;
   }
 
@@ -232,13 +241,15 @@ export class AutomergeStore<T> {
       return;
     }
 
+    this.performingUndoRedo = true;
+
     const next = this.undoStack.pop()!;
 
     this.redoStack.push(next);
 
-    this.makeChange((doc: Extend<T>) => {
+    this.makeChange((doc) => {
       for (const patch of next.undo) {
-        applyPatch(doc as any, patch);
+        applyPatch(doc, patch);
       }
     });
   }
@@ -248,13 +259,15 @@ export class AutomergeStore<T> {
       return;
     }
 
+    this.performingUndoRedo = true;
+
     const next = this.redoStack.pop()!;
 
     this.undoStack.push(next);
 
     this.makeChange((doc) => {
       for (const patch of next.redo) {
-        applyPatch(doc as any, patch);
+        applyPatch(doc, patch);
       }
     });
   }

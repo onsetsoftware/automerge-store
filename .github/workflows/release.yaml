@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - main
+      - next
 
 jobs:
   check_if_version_upgraded:
@@ -36,8 +37,15 @@ jobs:
       - name: run tests
         id: tests
         run: |
-          npm ci
+          if [ "$BRANCH" = "next" ]; then
+            echo "Installing dependencies for next branch"
+            npm ci --force
+          else
+            npm ci
+          fi
           npx vitest run --no-threads
+        env:
+          BRANCH: ${{ github.ref_name }}
       - name: Build Release
         id: build_release
         run: |
@@ -68,7 +76,7 @@ jobs:
         with:
           name: Automerge Store v${{ needs.check_if_version_upgraded.outputs.version }}
           tag_name: v${{ needs.check_if_version_upgraded.outputs.version }}
-          target_commitish: main
+          target_commitish: ${{ github.ref_name }}
           generate_release_notes: true
           draft: false
         env:

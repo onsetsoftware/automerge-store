@@ -50,7 +50,7 @@ const isPatches = (arg: UndoRedoAction): arg is Patch[] => {
   return Array.isArray(arg);
 };
 
-type UndoRedo = {
+export type UndoRedo = {
   undo: UndoRedoAction;
   redo: UndoRedoAction;
 };

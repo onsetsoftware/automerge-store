@@ -21,7 +21,7 @@ export function reorderArray(
   items.splice.apply(items, params);
 }
 
-describe("automerge document manager tests", () => {
+describe("automerge store undo redo", () => {
   beforeEach(() => {});
 
   test("adding text", () => {
@@ -416,5 +416,61 @@ describe("automerge document manager tests", () => {
     manager.redo();
 
     expect(manager.doc.hello.world).toEqual("world!");
+  });
+
+  test("can undo from a callback", () => {
+    type DocStructure = {
+      hello: Text;
+    };
+
+    let doc = init<DocStructure>();
+
+    const manager = new AutomergeStore<DocStructure>(
+      "docId",
+      change<DocStructure>(doc, (d) => {
+        d.hello = new Text();
+        d.hello.insertAt(0, ..."hello".split(""));
+      })
+    );
+
+    manager.change((doc) => {
+      doc.hello.insertAt(5, ..." world".split(""));
+    });
+
+    const data: number[] = [];
+
+    const redo = () => {
+      data.push(1);
+    };
+
+    const undo = () => {
+      data.pop();
+    };
+
+    redo();
+
+    expect(data).toEqual([1]);
+
+    manager.pushUndoRedo({
+      undo,
+      redo,
+    });
+
+    manager.undo();
+
+    expect(data).toEqual([]);
+
+    manager.redo();
+
+    expect(data).toEqual([1]);
+
+    manager.undo();
+    manager.undo();
+
+    expect(String(manager.doc.hello)).toEqual("hello");
+
+    manager.redo();
+
+    expect(String(manager.doc.hello)).toEqual("hello world");
   });
 });

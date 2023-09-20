@@ -1,19 +1,19 @@
 import {
-    PatchCallback,
-    change,
-    decodeChange,
-    getHeads,
-    getLastLocalChange,
-    type ChangeFn,
-    type ChangeOptions,
-    type Doc,
-    type Patch,
+  PatchCallback,
+  change,
+  decodeChange,
+  getHeads,
+  getLastLocalChange,
+  type ChangeFn,
+  type ChangeOptions,
+  type Doc,
+  type Patch,
 } from "@automerge/automerge";
 import type { ConnectResponse } from "./dev-tools";
 
 import {
-    patch as applyPatch,
-    unpatchAll,
+  patch as applyPatch,
+  unpatchAll,
 } from "@onsetsoftware/automerge-patcher";
 import { equalArrays } from "./utilities/equal-arrays";
 import { get } from "./utilities/get";
@@ -44,9 +44,15 @@ const reduxDevtoolsExtensionExists = (
   return "__REDUX_DEVTOOLS_EXTENSION__" in arg;
 };
 
-type UndoRedoPatches = {
-  undo: Patch[];
-  redo: Patch[];
+type UndoRedoAction = Patch[] | (() => void);
+
+const isPatches = (arg: UndoRedoAction): arg is Patch[] => {
+  return Array.isArray(arg);
+};
+
+type UndoRedo = {
+  undo: UndoRedoAction;
+  redo: UndoRedoAction;
 };
 
 export class AutomergeStore<T extends Doc<T>> {
@@ -61,8 +67,8 @@ export class AutomergeStore<T extends Doc<T>> {
 
   protected _ready: boolean = false;
 
-  protected undoStack: UndoRedoPatches[] = [];
-  protected redoStack: UndoRedoPatches[] = [];
+  protected undoStack: UndoRedo[] = [];
+  protected redoStack: UndoRedo[] = [];
 
   protected _doc!: Doc<T>;
 
@@ -162,6 +168,10 @@ export class AutomergeStore<T extends Doc<T>> {
     return get(this);
   }
 
+  pushUndoRedo(undoRedo: UndoRedo) {
+    this.undoStack.push(undoRedo);
+  }
+
   protected set doc(doc: Doc<T>) {
     if (!equalArrays(getHeads(doc), getHeads(this._doc))) {
       if (this.devTools) {
@@ -247,11 +257,17 @@ export class AutomergeStore<T extends Doc<T>> {
 
     this.redoStack.push(next);
 
-    this.makeChange((doc) => {
-      for (const patch of next.undo) {
-        applyPatch(doc, patch);
-      }
-    });
+    const undo = next.undo;
+
+    if (isPatches(undo)) {
+      this.makeChange((doc) => {
+        for (const patch of undo) {
+          applyPatch(doc, patch);
+        }
+      });
+    } else {
+      undo();
+    }
   }
 
   redo() {
@@ -265,11 +281,17 @@ export class AutomergeStore<T extends Doc<T>> {
 
     this.undoStack.push(next);
 
-    this.makeChange((doc) => {
-      for (const patch of next.redo) {
-        applyPatch(doc, patch);
-      }
-    });
+    const redo = next.redo;
+
+    if (isPatches(redo)) {
+      this.makeChange((doc) => {
+        for (const patch of redo) {
+          applyPatch(doc, patch);
+        }
+      });
+    } else {
+      redo();
+    }
   }
 
   protected setReady() {
@@ -298,7 +320,7 @@ export class AutomergeStore<T extends Doc<T>> {
 
   protected setupSubscriptions() { }
 
-  protected teardownSubscriptions() { } 
+  protected teardownSubscriptions() { }
 
   subscribe(callback: (doc: T) => void) {
     if (this.subscribers.size === 0) {

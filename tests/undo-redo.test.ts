@@ -3,6 +3,9 @@ import { change, init, Text } from "@automerge/automerge";
 import { AutomergeRepoStore, AutomergeStore } from "../src";
 import { Repo } from "@automerge/automerge-repo";
 
+export const pause = (t = 0) =>
+  new Promise<void>((resolve) => setTimeout(() => resolve(), t));
+
 export function reorderArray(
   items: any[],
   indexes: number[],
@@ -10,11 +13,11 @@ export function reorderArray(
 ) {
   const params = [insertIndex, 0]
     .concat(
-      indexes.sort(function (a, b) {
+      indexes.sort(function(a, b) {
         return a - b;
       })
     )
-    .map(function (i, p) {
+    .map(function(i, p) {
       return p > 1 ? items.splice(i - p + 2, 1).pop() : i;
     });
 
@@ -22,9 +25,9 @@ export function reorderArray(
 }
 
 describe("automerge store undo redo", () => {
-  beforeEach(() => {});
+  beforeEach(() => { });
 
-  test("adding text", () => {
+  test("adding text", async () => {
     type DocStructure = {
       hello: Text;
     };
@@ -43,16 +46,18 @@ describe("automerge store undo redo", () => {
       doc.hello.insertAt(5, ..." world".split(""));
     });
 
+    await pause(10);
     manager.undo();
 
     expect(String(manager.doc.hello)).toEqual("hello");
 
+    await pause(10);
     manager.redo();
 
     expect(String(manager.doc.hello)).toEqual("hello world");
   });
 
-  test("deleting text", () => {
+  test("deleting text", async () => {
     type DocStructure = {
       hello: Text;
     };
@@ -71,18 +76,20 @@ describe("automerge store undo redo", () => {
       doc.hello.deleteAt(1, 2);
     });
 
+    await pause(10);
     expect(String(manager.doc.hello)).toEqual("hlo");
 
     manager.undo();
 
     expect(String(manager.doc.hello)).toEqual("hello");
 
+    await pause(10);
     manager.redo();
 
     expect(String(manager.doc.hello)).toEqual("hlo");
   });
 
-  test("adding to an array", () => {
+  test("adding to an array", async () => {
     type DocStructure = {
       hello: string[];
     };
@@ -102,16 +109,18 @@ describe("automerge store undo redo", () => {
 
     expect(manager.doc.hello).toEqual(["hello", "world"]);
 
+    await pause(10);
     manager.undo();
 
     expect(manager.doc.hello).toEqual(["hello"]);
 
+    await pause(10);
     manager.redo();
 
     expect(manager.doc.hello).toEqual(["hello", "world"]);
   });
 
-  test("deleting an array item", () => {
+  test("deleting an array item", async () => {
     type DocStructure = {
       hello: string[];
     };
@@ -131,16 +140,18 @@ describe("automerge store undo redo", () => {
 
     expect(manager.doc.hello).toEqual(["hello"]);
 
+    await pause(10);
     manager.undo();
 
     expect(manager.doc.hello).toEqual(["hello", "world"]);
 
+    await pause(10);
     manager.redo();
 
     expect(manager.doc.hello).toEqual(["hello"]);
   });
 
-  test("reordering an array", () => {
+  test("reordering an array", async () => {
     type DocStructure = {
       hello: string[];
     };
@@ -160,16 +171,18 @@ describe("automerge store undo redo", () => {
 
     expect(manager.doc.hello).toEqual(["hello", "world", "there"]);
 
+    await pause(10);
     manager.undo();
 
     expect(manager.doc.hello).toEqual(["hello", "there", "world"]);
 
+    await pause(10);
     manager.redo();
 
     expect(manager.doc.hello).toEqual(["hello", "world", "there"]);
   });
 
-  test("updating an object property", () => {
+  test("updating an object property", async () => {
     type DocStructure = {
       hello: {
         world: string;
@@ -194,16 +207,18 @@ describe("automerge store undo redo", () => {
 
     expect(manager.doc.hello.world).toEqual("world");
 
+    await pause(10);
     manager.undo();
 
     expect(manager.doc.hello.world).toEqual("hello");
 
+    await pause(10);
     manager.redo();
 
     expect(manager.doc.hello.world).toEqual("world");
   });
 
-  test("deleting an object property", () => {
+  test("deleting an object property", async () => {
     type DocStructure = {
       hello: {
         world: string;
@@ -229,6 +244,7 @@ describe("automerge store undo redo", () => {
 
     expect(manager.doc.hello).toEqual({ world: "hello" });
 
+    await pause(10);
     manager.undo();
 
     expect(manager.doc.hello).toEqual({
@@ -236,12 +252,13 @@ describe("automerge store undo redo", () => {
       data: "data",
     });
 
+    await pause(10);
     manager.redo();
 
     expect(manager.doc.hello).toEqual({ world: "hello" });
   });
 
-  test("add entity", () => {
+  test("add entity", async () => {
     type DocStructure = {
       people: {
         ids: string[];
@@ -287,6 +304,7 @@ describe("automerge store undo redo", () => {
       },
     });
 
+    await pause(10);
     manager.undo();
 
     expect(manager.doc.people).toEqual({
@@ -294,6 +312,7 @@ describe("automerge store undo redo", () => {
       ids: [],
     });
 
+    await pause(10);
     manager.redo();
 
     expect(manager.doc.people).toEqual({
@@ -367,7 +386,8 @@ describe("automerge store undo redo", () => {
         },
       ];
 
-      manager.subscribe((doc) => {
+      manager.subscribe(async (doc) => {
+        await pause(10);
         expectations[calls](doc);
         calls++;
       });
@@ -378,7 +398,7 @@ describe("automerge store undo redo", () => {
     });
   });
 
-  test("undo with a transaction", () => {
+  test("undo with a transaction", async () => {
     type DocStructure = {
       hello: {
         world: string;
@@ -409,16 +429,18 @@ describe("automerge store undo redo", () => {
 
     expect(manager.doc.hello.world).toEqual("world!");
 
+    await pause(10);
     manager.undo();
 
     expect(manager.doc.hello.world).toEqual("hello");
 
+    await pause(10);
     manager.redo();
 
     expect(manager.doc.hello.world).toEqual("world!");
   });
 
-  test("can undo from a callback", () => {
+  test("can undo from a callback", async () => {
     type DocStructure = {
       hello: Text;
     };
@@ -436,6 +458,8 @@ describe("automerge store undo redo", () => {
     manager.change((doc) => {
       doc.hello.insertAt(5, ..." world".split(""));
     });
+
+    await pause(10);
 
     const data: number[] = [];
 

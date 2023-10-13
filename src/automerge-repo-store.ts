@@ -1,12 +1,13 @@
 import type {
-    ChangeFn,
-    ChangeOptions,
-    Doc,
-    PatchCallback,
+  ChangeFn,
+  ChangeOptions,
+  Doc,
+  PatchCallback,
 } from "@automerge/automerge";
 import { DocHandle, DocHandleChangePayload } from "@automerge/automerge-repo";
 import { unpatchAll } from "@onsetsoftware/automerge-patcher";
 import { AutomergeStore, AutomergeStoreOptions } from "./automerge-store";
+import { requestIdleCallback } from "./utilities/request-idle-callback";
 
 export class AutomergeRepoStore<T> extends AutomergeStore<T> {
   private patchCallbacks: Set<PatchCallback<T>> = new Set();
@@ -52,11 +53,16 @@ export class AutomergeRepoStore<T> extends AutomergeStore<T> {
     patchInfo,
   }: DocHandleChangePayload<T>) => {
     if (!this.performingUndoRedo && this.options.withUndoRedo) {
-      this.undoStack.push({
-        undo: unpatchAll(patchInfo.before, patches),
-        redo: patches,
-      });
-      this.redoStack = [];
+      requestIdleCallback(
+        () => {
+          this.undoStack.push({
+            undo: unpatchAll(patchInfo.before, patches),
+            redo: patches,
+          });
+          this.redoStack = [];
+        },
+        { timeout: 50 }
+      );
     } else {
       this.performingUndoRedo = false;
     }

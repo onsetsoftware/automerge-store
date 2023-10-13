@@ -18,6 +18,8 @@ import {
 import { equalArrays } from "./utilities/equal-arrays";
 import { get } from "./utilities/get";
 
+import { requestIdleCallback } from "./utilities/request-idle-callback";
+
 export type AutomergeStoreOptions = {
   withDevTools?: boolean;
   name?: string;
@@ -202,10 +204,15 @@ export class AutomergeStore<T extends Doc<T>> {
   protected patchCallback(options: ChangeOptions<T>): PatchCallback<T> {
     return (patches, info) => {
       if (this.options.withUndoRedo) {
-        this.undoStack.push({
-          undo: unpatchAll(info.before, patches),
-          redo: patches,
-        });
+        requestIdleCallback(
+          () => {
+            this.undoStack.push({
+              undo: unpatchAll(info.before, patches),
+              redo: patches,
+            });
+          },
+          { timeout: 50 }
+        );
       }
 
       if (options.patchCallback) {

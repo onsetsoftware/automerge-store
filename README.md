@@ -1,6 +1,6 @@
 # Automerge Store
 
-A simple wrapper around [Automerge](https://automerge.org/) documents, with Redux Dev Tools integration and undo/redo support. It works with both vanilla Automerge docs and `DocHandle`s from [Automerge Repo](https://github.com/automerge/automerge-repo).
+A simple wrapper around [Automerge](https://automerge.org/) documents, with Redux Dev Tools integration and experimental undo/redo support. It works with both vanilla Automerge docs and `DocHandle`s from [Automerge Repo](https://github.com/automerge/automerge-repo).
 
 ## Installation
 
@@ -13,7 +13,7 @@ npm install @onsetsoftware/automerge-store
 ### Automerge Documents
 
 ```typescript
-import { AutomergeStore } from '@onsetsoftware/automerge-store';
+import { AutomergeStore } from "@onsetsoftware/automerge-store";
 import { from } from "@automerge/automerge";
 
 type DocState = {
@@ -24,7 +24,7 @@ const doc = from({
   count: 0,
 });
 
-const docId = 'documentId';
+const docId = "documentId";
 
 const store = new AutomergeStore(docId, doc);
 ```
@@ -32,7 +32,7 @@ const store = new AutomergeStore(docId, doc);
 ### Automerge Repo Handles
 
 ```typescript
-import { AutomergeRepoStore } from '@onsetsoftware/automerge-store';
+import { AutomergeRepoStore } from "@onsetsoftware/automerge-store";
 import { DocHandle, DocumentId, Repo } from "@automerge/automerge-repo";
 import { LocalForageStorageAdapter } from "@automerge/automerge-repo-storage-localforage";
 import * as localforage from "localforage";
@@ -94,7 +94,10 @@ store.change((doc) => {
 });
 ```
 
-## Undo/Redo
+## Undo/Redo (Experimental)
+
+Implementing Undo/Redo is not trivial, especially when it comes to handling network sync too. Currently undo patches are generated within a `requestIdleCallback` wrapper so that generating them does not block the renderer.
+
 Undo/Redo is supported by the `undo` and `redo` methods:
 
 ```typescript
@@ -139,23 +142,24 @@ store.undo(); // doc.count === 0
 You can also pass a message to the transaction, which will be passed to automerge as the change message and displayed in Redux Dev Tools. Either return a string from the transaction function, or pass it as the second argument:
 
 ```typescript
-store.transaction(() => {
-  store.change((doc) => {
-    doc.count += 1;
-  });
+store.transaction(
+  () => {
+    store.change((doc) => {
+      doc.count += 1;
+    });
 
-  store.change((doc) => {
-    doc.count += 1;
-  });
+    store.change((doc) => {
+      doc.count += 1;
+    });
 
-  store.change((doc) => {
-    doc.count += 1;
-  });
+    store.change((doc) => {
+      doc.count += 1;
+    });
 
-  return "Incremented count";
-},
-// alternatively you can pass the message as the second argument. The return value will be used if both are provided
-"Incremented count"
+    return "Incremented count";
+  },
+  // alternatively you can pass the message as the second argument. The return value will be used if both are provided
+  "Incremented count"
 );
 ```
 

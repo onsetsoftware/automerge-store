@@ -2,6 +2,7 @@ import { DocHandle, Repo } from "@automerge/automerge-repo";
 import { beforeEach, describe, expect, test } from "vitest";
 import { AutomergeRepoStore } from "../src";
 import { DummyStorageAdapter } from "./helpers/dummy-storage-adapter";
+import { pause } from "./undo-redo.test";
 
 type Structure = {
   count: number;
@@ -21,6 +22,8 @@ describe("Repo tests", () => {
       network: [],
       storage,
     });
+
+    repo.saveDebounceRate = 0;
 
     handle = repo.create<Structure>();
 
@@ -133,6 +136,7 @@ describe("Repo tests", () => {
   test("store ready promise resolves", () =>
     new Promise(async (done: Function) => {
       const handle = repo.create<Structure>();
+
       handle.change((doc) => {
         Object.assign(doc, { count: 0, string: "hello" });
       });
@@ -141,6 +145,9 @@ describe("Repo tests", () => {
         network: [],
         storage,
       });
+
+      // make sure that the doc has been written to storage
+      await pause();
 
       handle.doc().then(() => {
         const found = repo2.find(handle.url);

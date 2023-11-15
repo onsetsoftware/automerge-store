@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, test } from "vitest";
-import { change, init, Text } from "@automerge/automerge";
+import {
+  change,
+  decodeChange,
+  getLastLocalChange,
+  init,
+  Text,
+} from "@automerge/automerge";
 import { AutomergeRepoStore, AutomergeStore } from "../src";
 import { Repo } from "@automerge/automerge-repo";
 
@@ -9,15 +15,15 @@ export const pause = (t = 0) =>
 export function reorderArray(
   items: any[],
   indexes: number[],
-  insertIndex: number
+  insertIndex: number,
 ) {
   const params = [insertIndex, 0]
     .concat(
-      indexes.sort(function(a, b) {
+      indexes.sort(function (a, b) {
         return a - b;
-      })
+      }),
     )
-    .map(function(i, p) {
+    .map(function (i, p) {
       return p > 1 ? items.splice(i - p + 2, 1).pop() : i;
     });
 
@@ -25,7 +31,7 @@ export function reorderArray(
 }
 
 describe("automerge store undo redo", () => {
-  beforeEach(() => { });
+  beforeEach(() => {});
 
   test("adding text", async () => {
     type DocStructure = {
@@ -39,20 +45,29 @@ describe("automerge store undo redo", () => {
       change<DocStructure>(doc, (d) => {
         d.hello = new Text();
         d.hello.insertAt(0, ..."hello".split(""));
-      })
+      }),
     );
 
-    manager.change((doc) => {
-      doc.hello.insertAt(5, ..." world".split(""));
-    });
+    manager.change(
+      (doc) => {
+        doc.hello.insertAt(5, ..." world".split(""));
+      },
+      { message: "Add text" },
+    );
 
     await pause(10);
     manager.undo();
+
+    const message = decodeChange(getLastLocalChange(manager.doc)!).message;
+    expect(message).toEqual("Undo Add text");
 
     expect(String(manager.doc.hello)).toEqual("hello");
 
     await pause(10);
     manager.redo();
+
+    const redoMessage = decodeChange(getLastLocalChange(manager.doc)!).message;
+    expect(redoMessage).toEqual("Redo Add text");
 
     expect(String(manager.doc.hello)).toEqual("hello world");
   });
@@ -69,7 +84,7 @@ describe("automerge store undo redo", () => {
       change<DocStructure>(doc, (d) => {
         d.hello = new Text();
         d.hello.insertAt(0, ..."hello".split(""));
-      })
+      }),
     );
 
     manager.change((doc) => {
@@ -100,7 +115,7 @@ describe("automerge store undo redo", () => {
       "docId",
       change<DocStructure>(doc, (d) => {
         Object.assign(d, { hello: ["hello"] });
-      })
+      }),
     );
 
     manager.change((doc) => {
@@ -131,7 +146,7 @@ describe("automerge store undo redo", () => {
       "docId",
       change<DocStructure>(doc, (d) => {
         Object.assign(d, { hello: ["hello", "world"] });
-      })
+      }),
     );
 
     manager.change((doc) => {
@@ -162,7 +177,7 @@ describe("automerge store undo redo", () => {
       "docId",
       change<DocStructure>(doc, (d) => {
         Object.assign(d, { hello: ["hello", "there", "world"] });
-      })
+      }),
     );
 
     manager.change((doc) => {
@@ -198,7 +213,7 @@ describe("automerge store undo redo", () => {
         d.hello = {
           world: "hello",
         };
-      })
+      }),
     );
 
     manager.change((doc) => {
@@ -235,7 +250,7 @@ describe("automerge store undo redo", () => {
           world: "hello",
           data: "data",
         };
-      })
+      }),
     );
 
     manager.change((doc) => {
@@ -282,7 +297,7 @@ describe("automerge store undo redo", () => {
             entities: {},
           },
         });
-      })
+      }),
     );
 
     manager.change((doc) => {
@@ -414,7 +429,7 @@ describe("automerge store undo redo", () => {
         d.hello = {
           world: "hello",
         };
-      })
+      }),
     );
 
     manager.transaction(() => {
@@ -452,7 +467,7 @@ describe("automerge store undo redo", () => {
       change<DocStructure>(doc, (d) => {
         d.hello = new Text();
         d.hello.insertAt(0, ..."hello".split(""));
-      })
+      }),
     );
 
     manager.change((doc) => {

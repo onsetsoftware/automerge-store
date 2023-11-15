@@ -1,8 +1,10 @@
-import type {
-  ChangeFn,
-  ChangeOptions,
-  Doc,
-  PatchCallback,
+import {
+  getLastLocalChange,
+  type ChangeFn,
+  type ChangeOptions,
+  type Doc,
+  type PatchCallback,
+  decodeChange,
 } from "@automerge/automerge";
 import { DocHandle, DocHandleChangePayload } from "@automerge/automerge-repo";
 import { unpatchAll } from "@onsetsoftware/automerge-patcher";
@@ -15,7 +17,7 @@ export class AutomergeRepoStore<T> extends AutomergeStore<T> {
 
   constructor(
     private handle: DocHandle<T>,
-    options: AutomergeStoreOptions = {}
+    options: AutomergeStoreOptions = {},
   ) {
     super(handle.documentId, handle.doc(), options);
 
@@ -24,7 +26,7 @@ export class AutomergeRepoStore<T> extends AutomergeStore<T> {
 
   protected makeChange(
     callback: ChangeFn<T>,
-    options: ChangeOptions<T> = {}
+    options: ChangeOptions<T> = {},
   ): Doc<T> {
     const { patchCallback, ...rest } = options;
 
@@ -35,7 +37,7 @@ export class AutomergeRepoStore<T> extends AutomergeStore<T> {
           "change",
           ({ patches, patchInfo }: DocHandleChangePayload<T>) => {
             patchCallback(patches, patchInfo);
-          }
+          },
         );
       } else {
         this.patchCallbacks.add(patchCallback);
@@ -53,15 +55,19 @@ export class AutomergeRepoStore<T> extends AutomergeStore<T> {
     patchInfo,
   }: DocHandleChangePayload<T>) => {
     if (!this.performingUndoRedo && this.options.withUndoRedo) {
+      const lastChange = getLastLocalChange(patchInfo.after);
+
+      const title = lastChange ? decodeChange(lastChange).message : undefined;
       requestIdleCallback(
         () => {
           this.undoStack.push({
+            title,
             undo: unpatchAll(patchInfo.before, patches),
             redo: patches,
           });
           this.redoStack = [];
         },
-        { timeout: 50 }
+        { timeout: 50 },
       );
     } else {
       this.performingUndoRedo = false;

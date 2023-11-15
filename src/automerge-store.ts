@@ -41,7 +41,7 @@ type WindowWithDevTools = Window & {
 };
 
 const reduxDevtoolsExtensionExists = (
-  arg: Window | WindowWithDevTools
+  arg: Window | WindowWithDevTools,
 ): arg is WindowWithDevTools => {
   return "__REDUX_DEVTOOLS_EXTENSION__" in arg;
 };
@@ -53,6 +53,7 @@ const isPatches = (arg: UndoRedoAction): arg is Patch[] => {
 };
 
 export type UndoRedo = {
+  title?: string;
   undo: UndoRedoAction;
   redo: UndoRedoAction;
 };
@@ -79,7 +80,7 @@ export class AutomergeStore<T extends Doc<T>> {
   constructor(
     protected _id: string,
     _doc: Doc<T> | Promise<Doc<T> | undefined>,
-    options: AutomergeStoreOptions = {}
+    options: AutomergeStoreOptions = {},
   ) {
     this.options = { ...defaultOptions, ...options };
 
@@ -141,7 +142,7 @@ export class AutomergeStore<T extends Doc<T>> {
       (doc) => {
         this.queuedChanges.forEach((change) => change(doc));
       },
-      { message }
+      { message },
     );
     this.queuedChanges = [];
   }
@@ -189,7 +190,7 @@ export class AutomergeStore<T extends Doc<T>> {
               (lastChange ? decodeChange(lastChange).message : "@LOAD") ||
               getHeads(doc).join(","),
           },
-          doc
+          doc,
         );
       }
 
@@ -204,14 +205,19 @@ export class AutomergeStore<T extends Doc<T>> {
   protected patchCallback(options: ChangeOptions<T>): PatchCallback<T> {
     return (patches, info) => {
       if (this.options.withUndoRedo) {
+        const lastChange = getLastLocalChange(info.after);
+
+        const title = lastChange ? decodeChange(lastChange).message : undefined;
+
         requestIdleCallback(
           () => {
             this.undoStack.push({
+              title,
               undo: unpatchAll(info.before, patches),
               redo: patches,
             });
           },
-          { timeout: 50 }
+          { timeout: 50 },
         );
       }
 
@@ -237,7 +243,7 @@ export class AutomergeStore<T extends Doc<T>> {
 
   protected makeChange(
     callback: ChangeFn<T>,
-    options: ChangeOptions<T> = {}
+    options: ChangeOptions<T> = {},
   ): Doc<T> {
     this.doc = change<T>(this._doc, options, callback);
 
@@ -260,20 +266,25 @@ export class AutomergeStore<T extends Doc<T>> {
 
     this.performingUndoRedo = true;
 
-    const next = this.undoStack.pop()!;
+    const next = this.undoStack.pop();
 
-    this.redoStack.push(next);
+    if (next) {
+      this.redoStack.push(next);
 
-    const undo = next.undo;
+      const undo = next.undo;
 
-    if (isPatches(undo)) {
-      this.makeChange((doc) => {
-        for (const patch of undo) {
-          applyPatch(doc, patch);
-        }
-      });
-    } else {
-      undo();
+      if (isPatches(undo)) {
+        this.makeChange(
+          (doc) => {
+            for (const patch of undo) {
+              applyPatch(doc, patch);
+            }
+          },
+          { message: next.title ? "Undo " + next.title : undefined },
+        );
+      } else {
+        undo();
+      }
     }
   }
 
@@ -284,20 +295,24 @@ export class AutomergeStore<T extends Doc<T>> {
 
     this.performingUndoRedo = true;
 
-    const next = this.redoStack.pop()!;
+    const next = this.redoStack.pop();
+    if (next) {
+      this.undoStack.push(next);
 
-    this.undoStack.push(next);
+      const redo = next.redo;
 
-    const redo = next.redo;
-
-    if (isPatches(redo)) {
-      this.makeChange((doc) => {
-        for (const patch of redo) {
-          applyPatch(doc, patch);
-        }
-      });
-    } else {
-      redo();
+      if (isPatches(redo)) {
+        this.makeChange(
+          (doc) => {
+            for (const patch of redo) {
+              applyPatch(doc, patch);
+            }
+          },
+          { message: next.title ? "Redo " + next.title : undefined },
+        );
+      } else {
+        redo();
+      }
     }
   }
 
@@ -325,9 +340,9 @@ export class AutomergeStore<T extends Doc<T>> {
     });
   }
 
-  protected setupSubscriptions() { }
+  protected setupSubscriptions() {}
 
-  protected teardownSubscriptions() { }
+  protected teardownSubscriptions() {}
 
   subscribe(callback: (doc: T) => void) {
     if (this.subscribers.size === 0) {

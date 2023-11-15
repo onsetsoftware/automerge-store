@@ -61,18 +61,18 @@ interface UpdateAction {
   readonly source: typeof source;
 }
 
-interface ImportStatePayload<S, A extends Action<unknown>> {
+interface ImportStatePayload<S, A extends Action<string>> {
   readonly type: "IMPORT_STATE";
   readonly nextLiftedState: LiftedState<S, A, unknown> | readonly A[];
   readonly preloadedState?: S;
 }
 
-interface ImportStateDispatchAction<S, A extends Action<unknown>> {
+interface ImportStateDispatchAction<S, A extends Action<string>> {
   readonly type: "DISPATCH";
   readonly payload: ImportStatePayload<S, A>;
 }
 
-export type ListenerMessage<S, A extends Action<unknown>> =
+export type ListenerMessage<S, A extends Action<string>> =
   | StartAction
   | StopAction
   | DispatchAction
@@ -84,8 +84,8 @@ export type ListenerMessage<S, A extends Action<unknown>> =
 
 export interface ConnectResponse {
   init: <S>(state: S) => void;
-  subscribe: <S, A extends Action<unknown>>(
-    listener: (message: ListenerMessage<S, A>) => void
+  subscribe: <S, A extends Action<string>>(
+    listener: (message: ListenerMessage<S, A>) => void,
   ) => (() => void) | undefined;
   unsubscribe: () => void;
   send: <S, A extends Action<unknown>>(action: A, state: S) => void;

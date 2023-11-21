@@ -86,7 +86,7 @@ describe("Repo tests", () => {
           patchCallback: (_) => {
             done();
           },
-        }
+        },
       );
     }));
 
@@ -114,7 +114,7 @@ describe("Repo tests", () => {
             unsub();
             done();
           },
-        }
+        },
       );
     });
   });
@@ -180,6 +180,27 @@ describe("Repo tests", () => {
     expect(first).toEqual("handle");
 
     expect(store.doc).toEqual({ count: 0, string: "hello" });
+  });
+
+  test("A change callback contains patches", async () => {
+    let firstRun = true;
+    const p = new Promise((done: Function) => {
+      store.subscribe((_, { patches }) => {
+        if (firstRun) {
+          expect(patches).toHaveLength(0);
+          firstRun = false;
+          return;
+        }
+        expect(patches).toHaveLength(1);
+        done();
+      });
+    });
+
+    store.change((doc) => {
+      doc.count = 1;
+    });
+
+    return p;
   });
 
   test("delayed initial subscribe yields the correct value", async () => {

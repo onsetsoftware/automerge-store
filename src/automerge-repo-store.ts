@@ -8,7 +8,11 @@ import {
 } from "@automerge/automerge";
 import { DocHandle, DocHandleChangePayload } from "@automerge/automerge-repo";
 import { unpatchAll } from "@onsetsoftware/automerge-patcher";
-import { AutomergeStore, AutomergeStoreOptions } from "./automerge-store";
+import {
+  AutomergeStore,
+  AutomergeStoreOptions,
+  SubscribeCallback,
+} from "./automerge-store";
 import { requestIdleCallback } from "./utilities/request-idle-callback";
 
 export class AutomergeRepoStore<T> extends AutomergeStore<T> {
@@ -79,6 +83,7 @@ export class AutomergeRepoStore<T> extends AutomergeStore<T> {
 
     this.patchCallbacks.clear();
 
+    this._patchData = { patches, patchInfo };
     this.doc = doc;
   };
 
@@ -98,7 +103,7 @@ export class AutomergeRepoStore<T> extends AutomergeStore<T> {
     this.handle.off("change", this.changeListener);
   }
 
-  public subscribe(callback: (doc: T) => void): () => void {
+  public subscribe(callback: SubscribeCallback<T>): () => void {
     const doc = this.handle.docSync();
     if (doc) {
       this.doc = doc;

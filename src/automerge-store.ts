@@ -8,6 +8,7 @@ import {
   type ChangeOptions,
   type Doc,
   type Patch,
+  PatchInfo,
 } from "@automerge/automerge";
 import type { ConnectResponse } from "./dev-tools";
 
@@ -52,6 +53,13 @@ const isPatches = (arg: UndoRedoAction): arg is Patch[] => {
   return Array.isArray(arg);
 };
 
+export type SubscribeCallback<T> = (doc: T, patchData: PatchData<T>) => void;
+
+export type PatchData<T> = {
+  patches: Patch[];
+  patchInfo: PatchInfo<T>;
+};
+
 export type UndoRedo = {
   title?: string;
   undo: UndoRedoAction;
@@ -59,7 +67,7 @@ export type UndoRedo = {
 };
 
 export class AutomergeStore<T extends Doc<T>> {
-  private subscribers: Set<(doc: Doc<T>) => void> = new Set();
+  private subscribers: Set<SubscribeCallback<T>> = new Set();
   private onReadySubscribers: Set<() => void> = new Set();
   protected options: AutomergeStoreOptions;
 
@@ -74,6 +82,7 @@ export class AutomergeStore<T extends Doc<T>> {
   protected redoStack: UndoRedo[] = [];
 
   protected _doc!: Doc<T>;
+  protected _patchData: PatchData<T> | undefined;
 
   protected performingUndoRedo = false;
 
@@ -118,7 +127,14 @@ export class AutomergeStore<T extends Doc<T>> {
           "actionId" in message.payload &&
           message.state
         ) {
-          this.updateSubscribers(JSON.parse(message.state));
+          this.updateSubscribers(JSON.parse(message.state), {
+            patches: [],
+            patchInfo: {
+              before: this._doc,
+              after: this._doc,
+              source: "change",
+            },
+          });
           this.liveChangeId = message.payload.actionId;
         }
       });
@@ -195,7 +211,7 @@ export class AutomergeStore<T extends Doc<T>> {
       }
 
       if (this.changeCount === this.liveChangeId) {
-        this.updateSubscribers(doc);
+        this.updateSubscribers(doc, this._patchData!);
       }
     }
 
@@ -204,6 +220,7 @@ export class AutomergeStore<T extends Doc<T>> {
 
   protected patchCallback(options: ChangeOptions<T>): PatchCallback<T> {
     return (patches, info) => {
+      this._patchData = { patches, patchInfo: info };
       if (this.options.withUndoRedo) {
         const lastChange = getLastLocalChange(info.after);
 
@@ -334,9 +351,9 @@ export class AutomergeStore<T extends Doc<T>> {
     }
   }
 
-  private updateSubscribers(doc: T) {
+  private updateSubscribers(doc: T, patchData: PatchData<T>) {
     this.subscribers.forEach((subscriber) => {
-      subscriber(doc);
+      subscriber(doc, patchData);
     });
   }
 
@@ -344,13 +361,19 @@ export class AutomergeStore<T extends Doc<T>> {
 
   protected teardownSubscriptions() {}
 
-  subscribe(callback: (doc: T) => void) {
+  subscribe(callback: SubscribeCallback<T>) {
     if (this.subscribers.size === 0) {
       this.setupSubscriptions();
     }
 
     if (!this.subscribers.has(callback)) {
-      callback(this._doc);
+      callback(
+        this._doc,
+        this._patchData || {
+          patches: [],
+          patchInfo: { before: this._doc, after: this._doc, source: "change" },
+        },
+      );
       this.subscribers.add(callback);
     }
 

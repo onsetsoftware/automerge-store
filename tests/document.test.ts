@@ -29,6 +29,27 @@ describe("Document tests", () => {
     expect(store.doc).toEqual({ count: 1, string: "hello" });
   });
 
+  test("a change callback contains patches", () => {
+    let firstRun = true;
+    const p = new Promise((done: Function) => {
+      store.subscribe((_, { patches }) => {
+        if (firstRun) {
+          expect(patches).toHaveLength(0);
+          firstRun = false;
+          return;
+        }
+        expect(patches).toHaveLength(1);
+        done();
+      });
+    });
+
+    store.change((doc) => {
+      doc.count = 1;
+    });
+
+    return p;
+  });
+
   test("a patch callback can be passed to the change function", () =>
     new Promise((done: Function) => {
       store.change(

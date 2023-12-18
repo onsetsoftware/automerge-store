@@ -43,7 +43,7 @@ jobs:
           else
             npm ci
           fi
-          npx vitest run --no-threads
+          npx vitest run
         env:
           BRANCH: ${{ github.ref_name }}
       - name: Build Release

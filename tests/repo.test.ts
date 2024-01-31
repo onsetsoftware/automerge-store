@@ -35,6 +35,30 @@ describe("Repo tests", () => {
     await store.ready();
   });
 
+  test("A store can be created and subscribers are updated when ready", () => {
+    const localRepo = new Repo({
+      network: [],
+      storage,
+    });
+    const local = localRepo.find(handle.url);
+
+    const localStore = new AutomergeRepoStore(local);
+
+    return new Promise((done: Function) => {
+      let count = 0;
+      localStore.subscribe((doc) => {
+        if (count === 0) {
+          expect(doc).toBeUndefined();
+          count++;
+          return;
+        }
+
+        expect(doc).toEqual({ count: 0, string: "hello" });
+        done();
+      });
+    });
+  });
+
   test("A document handle can be passed to a store", () => {
     expect(store.doc).toEqual({ count: 0, string: "hello" });
 

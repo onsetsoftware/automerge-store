@@ -96,7 +96,7 @@ export class AutomergeStore<T extends Doc<T>> {
     if (_doc instanceof Promise) {
       _doc.then(async (doc) => {
         if (doc) {
-          this._doc = doc;
+          this.doc = doc;
           await new Promise((resolve) => setTimeout(resolve));
           this.setReady();
         }
@@ -192,7 +192,7 @@ export class AutomergeStore<T extends Doc<T>> {
   }
 
   protected set doc(doc: Doc<T>) {
-    if (!equalArrays(getHeads(doc), getHeads(this._doc))) {
+    if (!this._doc || !equalArrays(getHeads(doc), getHeads(this._doc))) {
       if (this.devTools) {
         if (this.liveChangeId === this.changeCount) {
           this.liveChangeId++;

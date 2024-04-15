@@ -1,13 +1,13 @@
-import { beforeEach, describe, expect, test } from "vitest";
 import {
+  Text,
   change,
   decodeChange,
   getLastLocalChange,
   init,
-  Text,
 } from "@automerge/automerge";
-import { AutomergeRepoStore, AutomergeStore } from "../src";
 import { Repo } from "@automerge/automerge-repo";
+import { beforeEach, describe, expect, test } from "vitest";
+import { AutomergeRepoStore, AutomergeStore } from "../src";
 
 export const pause = (t = 0) =>
   new Promise<void>((resolve) => setTimeout(() => resolve(), t));

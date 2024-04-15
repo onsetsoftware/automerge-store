@@ -145,6 +145,14 @@ export class AutomergeStore<T extends Doc<T>> {
     return this._ready;
   }
 
+  get undos() {
+    return this.undoStack;
+  }
+
+  get redos() {
+    return this.redoStack;
+  }
+
   private queueing = false;
   private queuedChanges: ChangeFn<T>[] = [];
 
@@ -229,7 +237,7 @@ export class AutomergeStore<T extends Doc<T>> {
         requestIdleCallback(
           () => {
             this.undoStack.push({
-              title,
+              title: title ?? undefined,
               undo: unpatchAll(info.before, patches),
               redo: patches,
             });

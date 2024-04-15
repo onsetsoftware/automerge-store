@@ -65,7 +65,7 @@ export class AutomergeRepoStore<T> extends AutomergeStore<T> {
       requestIdleCallback(
         () => {
           this.undoStack.push({
-            title,
+            title: title ?? undefined,
             undo: unpatchAll(patchInfo.before, patches),
             redo: patches,
           });

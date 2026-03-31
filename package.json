@@ -1,6 +1,7 @@
 {
   "name": "@onsetsoftware/automerge-store",
-  "version": "0.16.0-alpha.6",
+  "repository": "https://github.com/onsetsoftware/automerge-store",
+  "version": "0.16.0-alpha.7",
   "type": "module",
   "scripts": {
     "dev": "vite",

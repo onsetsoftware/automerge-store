@@ -21,9 +21,8 @@ describe("Repo tests", () => {
     repo = new Repo({
       network: [],
       storage,
+      saveDebounceRate: 0,
     });
-
-    repo.saveDebounceRate = 0;
 
     handle = repo.create<Structure>();
 
@@ -31,32 +30,9 @@ describe("Repo tests", () => {
       Object.assign(doc, { count: 0, string: "hello" });
     });
 
+    await pause(100);
+
     store = new AutomergeRepoStore(handle);
-    await store.ready();
-  });
-
-  test("A store can be created and subscribers are updated when ready", () => {
-    const localRepo = new Repo({
-      network: [],
-      storage,
-    });
-    const local = localRepo.find(handle.url);
-
-    const localStore = new AutomergeRepoStore(local);
-
-    return new Promise((done: Function) => {
-      let count = 0;
-      localStore.subscribe((doc) => {
-        if (count === 0) {
-          expect(doc).toBeUndefined();
-          count++;
-          return;
-        }
-
-        expect(doc).toEqual({ count: 0, string: "hello" });
-        done();
-      });
-    });
   });
 
   test("A document handle can be passed to a store", () => {
@@ -141,69 +117,6 @@ describe("Repo tests", () => {
         },
       );
     });
-  });
-
-  test("a store is marked as ready", () =>
-    new Promise(async (done: Function) => {
-      const handle = repo.create<Structure>();
-      const found = repo.find(handle.url);
-      const store = new AutomergeRepoStore(found);
-      expect(store.isReady).toBe(false);
-
-      store.onReady(async () => {
-        expect(await found.doc()).toBeDefined();
-        expect(store.isReady).toBe(true);
-        done();
-      });
-    }));
-
-  test("store ready promise resolves", () =>
-    new Promise(async (done: Function) => {
-      const handle = repo.create<Structure>();
-
-      handle.change((doc) => {
-        Object.assign(doc, { count: 0, string: "hello" });
-      });
-
-      const repo2 = new Repo({
-        network: [],
-        storage,
-      });
-
-      // make sure that the doc has been written to storage
-      await pause();
-
-      handle.doc().then(() => {
-        const found = repo2.find(handle.url);
-
-        const store = new AutomergeRepoStore(found);
-
-        store.ready().then(() => {
-          expect(store.doc).toEqual({ count: 0, string: "hello" });
-          store.subscribe((doc) => {
-            expect(doc).toEqual({ count: 0, string: "hello" });
-            done();
-          });
-        });
-      });
-    }));
-
-  test("handle value resolves before store ready", async () => {
-    const repo = new Repo({
-      network: [],
-      storage,
-    });
-
-    const found = repo.find(handle.url);
-    const store = new AutomergeRepoStore(found);
-
-    const first = await Promise.race([
-      new Promise<"handle">((done) => found.doc().then(() => done("handle"))),
-      new Promise<"store">((done) => store.ready().then(() => done("store"))),
-    ]);
-    expect(first).toEqual("handle");
-
-    expect(store.doc).toEqual({ count: 0, string: "hello" });
   });
 
   test("A change callback contains patches", async () => {

@@ -68,15 +68,12 @@ export type UndoRedo = {
 
 export class AutomergeStore<T extends Doc<T>> {
   private subscribers: Set<SubscribeCallback<T>> = new Set();
-  private onReadySubscribers: Set<() => void> = new Set();
   protected options: AutomergeStoreOptions;
 
   // dev tools parameters
   private devTools: ConnectResponse | undefined;
   protected changeCount = 0;
   protected liveChangeId = 0;
-
-  protected _ready: boolean = false;
 
   protected undoStack: UndoRedo[] = [];
   protected redoStack: UndoRedo[] = [];
@@ -88,27 +85,14 @@ export class AutomergeStore<T extends Doc<T>> {
 
   constructor(
     protected _id: string,
-    _doc: Doc<T> | Promise<Doc<T> | undefined>,
+    _doc: Doc<T>,
     options: AutomergeStoreOptions = {},
   ) {
     this.options = { ...defaultOptions, ...options };
 
-    if (_doc instanceof Promise) {
-      _doc.then(async (doc) => {
-        if (doc) {
-          this.doc = doc;
-          await new Promise((resolve) => setTimeout(resolve));
-          this.setReady();
-        }
-      });
-    } else {
-      this._doc = _doc;
-      this.setReady();
-    }
+    this._doc = _doc;
 
-    this.ready().then(() => {
-      this.setupDevTools();
-    });
+    this.setupDevTools();
   }
 
   private setupDevTools() {
@@ -141,10 +125,6 @@ export class AutomergeStore<T extends Doc<T>> {
     }
   }
 
-  get isReady() {
-    return this._ready;
-  }
-
   get undos() {
     return this.undoStack;
   }
@@ -175,16 +155,6 @@ export class AutomergeStore<T extends Doc<T>> {
     this.startTransaction();
     const m = callback();
     this.endTransaction(m ?? message);
-  }
-
-  ready() {
-    return new Promise<void>((resolve) => {
-      if (this._ready) {
-        resolve();
-      } else {
-        this.onReadySubscribers.add(resolve);
-      }
-    });
   }
 
   get id() {
@@ -338,24 +308,6 @@ export class AutomergeStore<T extends Doc<T>> {
       } else {
         redo();
       }
-    }
-  }
-
-  protected setReady() {
-    this._ready = true;
-
-    this.onReadySubscribers.forEach((subscriber) => {
-      subscriber();
-    });
-
-    this.onReadySubscribers.clear();
-  }
-
-  onReady(callback: () => void) {
-    if (this._ready) {
-      callback();
-    } else {
-      this.onReadySubscribers.add(callback);
     }
   }
 

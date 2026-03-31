@@ -24,8 +24,6 @@ export class AutomergeRepoStore<T> extends AutomergeStore<T> {
     options: AutomergeStoreOptions = {},
   ) {
     super(handle.documentId, handle.doc(), options);
-
-    this._ready = false;
   }
 
   protected makeChange(
@@ -104,7 +102,7 @@ export class AutomergeRepoStore<T> extends AutomergeStore<T> {
   }
 
   public subscribe(callback: SubscribeCallback<T>): () => void {
-    const doc = this.handle.docSync();
+    const doc = this.handle.doc();
     if (doc) {
       this.doc = doc;
     }

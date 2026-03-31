@@ -153,18 +153,4 @@ describe("Document tests", () => {
       });
     });
   });
-
-  test("a document is marked as ready", () =>
-    new Promise((done: Function) => {
-      store.onReady(() => {
-        done();
-      });
-    }));
-
-  test("store ready promise resolves", () =>
-    new Promise((done: Function) => {
-      store.ready().then(() => {
-        done();
-      });
-    }));
 });

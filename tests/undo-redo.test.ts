@@ -1,9 +1,10 @@
 import {
-  Text,
   change,
   decodeChange,
+  from,
   getLastLocalChange,
   init,
+  splice,
 } from "@automerge/automerge";
 import { Repo } from "@automerge/automerge-repo";
 import { beforeEach, describe, expect, test } from "vitest";
@@ -35,22 +36,21 @@ describe("automerge store undo redo", () => {
 
   test("adding text", async () => {
     type DocStructure = {
-      hello: Text;
+      hello: string;
     };
 
-    let doc = init<DocStructure>();
+    let doc = from<DocStructure>({ hello: "" });
 
     const manager = new AutomergeStore<DocStructure>(
       "docId",
       change<DocStructure>(doc, (d) => {
-        d.hello = new Text();
-        d.hello.insertAt(0, ..."hello".split(""));
+        splice(d, ["hello"], 0, 0, "hello");
       }),
     );
 
     manager.change(
       (doc) => {
-        doc.hello.insertAt(5, ..." world".split(""));
+        splice(doc, ["hello"], 5, 0, " world");
       },
       { message: "Add text" },
     );
@@ -74,7 +74,7 @@ describe("automerge store undo redo", () => {
 
   test("deleting text", async () => {
     type DocStructure = {
-      hello: Text;
+      hello: string;
     };
 
     let doc = init<DocStructure>();
@@ -82,13 +82,13 @@ describe("automerge store undo redo", () => {
     const manager = new AutomergeStore<DocStructure>(
       "docId",
       change<DocStructure>(doc, (d) => {
-        d.hello = new Text();
-        d.hello.insertAt(0, ..."hello".split(""));
+        d.hello = "";
+        splice(d, ["hello"], 0, 0, "hello");
       }),
     );
 
     manager.change((doc) => {
-      doc.hello.deleteAt(1, 2);
+      splice(doc, ["hello"], 1, 2);
     });
 
     await pause(10);
@@ -359,8 +359,6 @@ describe("automerge store undo redo", () => {
     return new Promise(async (done: Function) => {
       const manager = new AutomergeRepoStore(handle);
 
-      await manager.ready();
-
       let calls = 0;
 
       const expectations = [
@@ -457,7 +455,7 @@ describe("automerge store undo redo", () => {
 
   test("can undo from a callback", async () => {
     type DocStructure = {
-      hello: Text;
+      hello: string;
     };
 
     let doc = init<DocStructure>();
@@ -465,13 +463,13 @@ describe("automerge store undo redo", () => {
     const manager = new AutomergeStore<DocStructure>(
       "docId",
       change<DocStructure>(doc, (d) => {
-        d.hello = new Text();
-        d.hello.insertAt(0, ..."hello".split(""));
+        d.hello = "";
+        splice(d, ["hello"], 0, 0, "hello");
       }),
     );
 
     manager.change((doc) => {
-      doc.hello.insertAt(5, ..." world".split(""));
+      splice(doc, ["hello"], 5, 0, " world");
     });
 
     await pause(10);

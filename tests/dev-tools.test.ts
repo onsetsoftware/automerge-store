@@ -19,10 +19,8 @@ describe("Dev tools integration", () => {
     const store = new AutomergeStore(
       "test",
       { count: 0 },
-      { withDevTools: true }
+      { withDevTools: true },
     );
-
-    await store.ready();
 
     expect(devToolsMock.connect).toBeCalledWith({
       instanceId: "test",
@@ -34,10 +32,8 @@ describe("Dev tools integration", () => {
     const store = new AutomergeStore(
       "test",
       { count: 0 },
-      { withDevTools: true, name: "Main Doc" }
+      { withDevTools: true, name: "Main Doc" },
     );
-
-    await store.ready();
 
     expect(devToolsMock.connect).toBeCalledWith({
       instanceId: "test",
@@ -53,8 +49,6 @@ describe("Dev tools integration", () => {
     const handle = repo.create();
 
     const store = new AutomergeRepoStore(handle, { withDevTools: true });
-
-    await store.ready();
 
     expect(devToolsMock.connect).toBeCalledWith({
       instanceId: handle.documentId,
@@ -75,18 +69,16 @@ describe("Dev tools integration", () => {
       doc.foo = "bar";
     });
 
-    await new Promise((resolve) => setTimeout(resolve));
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     const repo2 = new Repo({
       storage: memoryStorage,
       network: [],
     });
 
-    const store = new AutomergeRepoStore(repo2.find(handle.url), {
+    const store = new AutomergeRepoStore(await repo2.find(handle.url), {
       withDevTools: true,
     });
-
-    await store.ready();
 
     expect(devToolsMock.connect).toBeCalledWith({
       instanceId: handle.documentId,

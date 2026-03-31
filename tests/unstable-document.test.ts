@@ -1,6 +1,6 @@
-import { next } from "@automerge/automerge";
 import { beforeEach, describe, expect, test } from "vitest";
 import { AutomergeStore } from "../src";
+import { Doc, from, splice } from "@automerge/automerge";
 
 type Structure = {
   count: number;
@@ -10,7 +10,7 @@ type Structure = {
   };
 };
 
-let doc: next.Doc<Structure>;
+let doc: Doc<Structure>;
 
 const initialState: Structure = {
   count: 0,
@@ -18,9 +18,9 @@ const initialState: Structure = {
   object: { nested: "hello" },
 };
 
-describe("next document tests", () => {
+describe("document tests", () => {
   beforeEach(() => {
-    doc = next.from(initialState);
+    doc = from(initialState);
   });
 
   test("A v2 document can be passed to a store", () => {
@@ -33,8 +33,8 @@ describe("next document tests", () => {
     const store = new AutomergeStore<Structure>("test", doc);
 
     store.change((d) => {
-      next.splice(d, ["string"], 5, 0, " world");
-      next.splice(d, ["string"], 1, 3);
+      splice(d, ["string"], 5, 0, " world");
+      splice(d, ["string"], 1, 3);
     });
 
     expect(store.doc.string).toEqual("ho world");

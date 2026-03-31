@@ -72,8 +72,6 @@ localforage.getItem("rootDocId").then(async (docId) => {
 ## Subscribing
 
 ```typescript
-await store.ready();
-
 const unsubscribe = store.subscribe((doc) => {
   // update your UI/update another state store
   console.log(doc);
@@ -86,9 +84,6 @@ unsubscribe();
 ## Updating the document
 
 ```typescript
-// wait for the store to be ready before making changes
-await store.ready();
-
 store.change((doc) => {
   doc.count += 1;
 });

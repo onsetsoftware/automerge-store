@@ -88,6 +88,6 @@ export interface ConnectResponse {
     listener: (message: ListenerMessage<S, A>) => void,
   ) => (() => void) | undefined;
   unsubscribe: () => void;
-  send: <S, A extends Action<unknown>>(action: A, state: S) => void;
+  send: <S, A extends Action<string>>(action: A, state: S) => void;
   error: (payload: string) => void;
 }

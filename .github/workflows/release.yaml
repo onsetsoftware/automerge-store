@@ -49,7 +49,8 @@ jobs:
       - name: run tests
         id: tests
         run: |
-          pnpm install
+          pnpm clean
+          pnpm install --frozen-lockfile
           pnpx vitest run
       - name: Build Release
         id: build_release
